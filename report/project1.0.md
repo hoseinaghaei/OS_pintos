@@ -27,7 +27,8 @@
 
 ## یافتن دستور معیوب
 
-۱.
+۱. move 0x24(%exp),%eax 
+	address : 0.xbfffffe4 + 0x24 = 0xc0000018 
 
 ۲.
 
