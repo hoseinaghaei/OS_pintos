@@ -5,7 +5,7 @@
 -----
 > نام و آدرس پست الکترونیکی اعضای گروه را در این قسمت بنویسید.
 
-نام و نام خانوادگی <example@example.com>
+حسین آقائی h.aghaei.araei@gmail.com
 
 نام و نام خانوادگی <example@example.com> 
 
