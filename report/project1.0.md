@@ -31,7 +31,9 @@
     move 0x24(%exp),%eax 
 	address : 0.xbfffffe4 + 0x24 = 0xc0000018 
 
-۲. 0x8048757
+۲.
+    0x48757
+    
 
 ۳.
 
