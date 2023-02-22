@@ -36,6 +36,8 @@
     
 
 ۳.
+ a) _start
+ b) move 0x24(%exp),%eax 
 
 ۴.
 
