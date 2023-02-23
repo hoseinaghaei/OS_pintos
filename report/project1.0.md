@@ -36,8 +36,10 @@
     
 
 ۳.
- a) _start
- b) move 0x24(%exp),%eax 
+ `a) _start
+  b) move 0x24(%exp),%eax
+ `
+  
 
 ۴.
    grep -rnw 'lib/' -e '_start'
