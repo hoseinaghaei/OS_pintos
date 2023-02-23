@@ -44,13 +44,9 @@
 ۴.
    `grep -rnw 'lib/' -e '_start'`
    
-   `lib/user/user.lds:3:ENTRY(_start)
-   
-   
-   lib/user/entry.c:4:void _start (int argc, char *argv[]);
-   
-   
-   lib/user/entry.c:7:_start (int argc, char *argv[])`
+   lib/user/user.lds:3:ENTRY(_start) 
+   lib/user/entry.c:4:void _start (int argc, char *argv[]); 
+   lib/user/entry.c:7:_start (int argc, char *argv[]) 
    
    C code:
    #include <syscall.h>
