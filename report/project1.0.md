@@ -110,6 +110,30 @@ pintos-debug: dumplist #2: 0xc010a000 {tid = 3, status = THREAD_RUNNING, name = 
 
 ۹.
 
+process_execute (const char *file_name)
+{
+char *fn_copy;
+tid_t tid;
+
+sema_init (&temporary, 0);
+/* Make a copy of FILE_NAME.
+Otherwise there's a race between the caller and load(). */
+fn_copy = palloc_get_page (0);
+if (fn_copy == NULL)
+return TID_ERROR;
+strlcpy (fn_copy, file_name, PGSIZE);
+
+/* Create a new thread to execute FILE_NAME. */
+tid = thread_create (file_name, PRI_DEFAULT, start_process, fn_copy);
+if (tid == TID_ERROR)
+palloc_free_page (fn_copy);
+return tid;
+}
+------
+exactly in the line:
+tid = thread_create (file_name, PRI_DEFAULT, start_process, fn_copy);
+start_process becomes created.
+
 ۱۰.
 
 ۱۱.
