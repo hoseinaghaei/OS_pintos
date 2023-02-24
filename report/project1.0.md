@@ -28,7 +28,7 @@
 ## یافتن دستور معیوب
 
 ۱.
-    move 0x24(%exp),%eax 
+    mov    0x24(%esp),%eax 
 	address : 0xbfffffe4 + 0x24 = 0xc0000008 
 
 ۲.
@@ -37,7 +37,7 @@
 
 ۳.
     a) _start
-    b) move 0x24(%exp),%eax
+    b) mov    0x24(%esp),%eax
   
 
 ۴.
@@ -50,12 +50,16 @@
    
     ```
     #include <syscall.h>
+
     int main (int, char *[]);
     void _start (int argc, char *argv[]);
-    void start (int argc, char *argv[]) 
+
+    void
+    _start (int argc, char *argv[])
     {
-        exit (main (argc, argv));
+    exit (main (argc, argv));
     }
+
     ```
    
     ```
