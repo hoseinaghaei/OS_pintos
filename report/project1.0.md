@@ -135,10 +135,11 @@ tid = thread_create (file_name, PRI_DEFAULT, start_process, fn_copy);
 start_process becomes created.
 
 ۱۰.
- {edi = 0x0, esi = 0x0, ebp = 0x0, esp_dummy = 0x0, ebx = 0x0, edx = 0x0, ecx = 0x0, eax = 0x0, gs = 0x23, fs = 0x23, es = 0x23, ds = 0x23, vec_no = 0x0, error_code = 0x0, frame_pointer = 0x0, eip = 0x0, cs = 0x1b, eflags = 0x202, esp = 0x0, ss = 0x23}
+ {edi = 0x0, esi = 0x0, ebp = 0x0, esp_dummy = 0x0, ebx = 0x0, edx = 0x0, ecx = 0x0, eax = 0x0, gs = 
+0x23, fs = 0x23, es = 0x23, ds = 0x23, vec_no = 0x0, error_code = 0x0, frame_pointer = 0x0, eip = 0x8048754, cs = 0x1b, eflags = 0x202, esp = 0xc0000000, ss = 0x23}
 
 
-۱۱.
+۱۱. در تابع start_process، کرنل می‌خواهد برنامه‌ای را که در آدرس آن در ورودی داده شده‌است را آماده اجرا کند. کرنل ابتدا رجیستر‌ها را به یک مقدار اولیه مقداردهی می‌کند و سپس برنامه یوزر را به مموری لود کرده و در نهایت با دستورات اسمبلی موجود در asm volatile یک اینتراپت را شبیه‌سازی می‌کند و در نهایت اجرا به فضای کاربر داده می‌شود. در نتیجه از فضای کرنل به فضای کاربر سوییج شد که این کار باعث تغییر حالت یا مود پراسس می‌شود.
 
 ۱۲.
 
