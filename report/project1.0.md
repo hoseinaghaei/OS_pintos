@@ -181,6 +181,20 @@ if_.esp -= 0x24;
 
 
 ۱۵.
+the content which i found in do-stack-align.ck
+
+# -*- perl -*-
+use strict;
+use warnings;
+use tests::tests;
+check_expected ([<<'EOF']);
+do-stack-align: exit(12)
+EOF
+pass;
+
+--------------
+
+so i think the return value sould be 12.
 
 ۱۶.
 
