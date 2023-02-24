@@ -29,15 +29,16 @@
 
 ۱.
     move 0x24(%exp),%eax 
-	address : 0.xbfffffe4 + 0x24 = 0xc0000018 
+	address : 0xbfffffe4 + 0x24 = 0xc0000008 
 
 ۲.
     0x8048757
     
 
 ۳.
- `a) _start
-  b) move 0x24(%exp),%eax
+ `
+ a) _start
+ b) move 0x24(%exp),%eax
  `
   
 
