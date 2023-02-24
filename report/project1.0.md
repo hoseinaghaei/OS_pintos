@@ -11,7 +11,7 @@
 
 امیرمهدی کوششی amk_amir82@yahoo.com
 
-نام و نام خانوادگی <example@example.com> 
+آرمین دلگسار ماهر arminmaher@gmail.com 
 
 مقدمات
 ----------
