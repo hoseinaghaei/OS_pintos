@@ -160,6 +160,7 @@ fs             0x23     35
 gs             0x23     35
 
 ۱۳. 
+	#0  _start (argc=<unavailable>, argv=<unavailable>) at ../../lib/user/entry.c:9
 
 
 ## دیباگ
