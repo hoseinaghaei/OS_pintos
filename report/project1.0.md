@@ -210,6 +210,7 @@ $1 = 1  ---> it is syscall code number
 $2 = 162 ---> it is exit code number 
 
 These two values are as same as the two values on the top of the stack in hex.
+
 ۱۸.
 Here is my understanding from this temporary semaphore. First of all we saw that in init.c at first steps of checking we faced with process_execute function which is running an user's program. This function is an input argument of process_wait. So the flow is creating new thread for running new program and initialize temporary semaphore with 0 value.
 after that passing the created thread id to process_wait. Inside of that function we have semaphore_down that looks at temporary value and it is zero so it can not pass this line and the thread will wait. In result we can say that this program will not allow a thread to finish before running process_execute and executing semaphore_up inside of that. Of course if this OS could handle multi-threading this flow couldn't run like now because some threads exit and increament the semaphore and after that the new thread could prevent waiting because temporary is already a positive integer (multi-thread in pthread_create position of course inside of process_execute)
@@ -224,5 +225,15 @@ process_wait (tid_t child_tid UNUSED)
 }
 
 ۱۹.
+
+main thread -> 0xc000e000
+
+pintos-debug: dumplist #0: 0xc000e000 {tid = 1, status = THREAD_RUNNING, name = "main", '\000' <repeats 11 times>, stack = 0xc000edec "\375\003", priority = 31, allelem = {prev = 0xc0035910 <all_list>, n
+ext = 0xc0104020}, elem = {prev = 0xc0035920 <ready_list>, next = 0xc0035928 <ready_list+8>}, pagedir = 0x0, magic = 3446325067}
+pintos-debug: dumplist #1: 0xc0104000 {tid = 2, status = THREAD_BLOCKED, name = "idle", '\000' <repeats 11 times>, stack = 0xc0104f34 "", priority = 0, allelem = {prev = 0xc000e020, next = 0xc010a020}, e
+lem = {prev = 0xc0035920 <ready_list>, next = 0xc0035928 <ready_list+8>}, pagedir = 0x0, magic = 3446325067}
+pintos-debug: dumplist #2: 0xc010a000 {tid = 3, status = THREAD_READY, name = "do-nothing\000\000\000\000\000", stack = 0xc010afd4 "", priority = 31, allelem = {prev = 0xc0104020, next = 0xc0035918 <all_
+list+8>}, elem = {prev = 0xc0035920 <ready_list>, next = 0xc0035928 <ready_list+8>}, pagedir = 0x0, magic = 3446325067}
+
 
 </div>
