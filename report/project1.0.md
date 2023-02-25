@@ -201,6 +201,7 @@ pass;
 so i think the return value sould be 12.
 
 ۱۶.
+0xbfffff98:     0x00000001      0x000000a2
 
 ۱۷.
 
