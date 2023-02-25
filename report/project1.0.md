@@ -211,6 +211,17 @@ $2 = 162 ---> it is exit code number
 
 These two values are as same as the two values on the top of the stack in hex.
 ۱۸.
+Here is my understanding from this temporary semaphore. First of all we saw that in init.c at first steps of checking we faced with process_execute function which is running an user's program. This function is an input argument of process_wait. So the flow is creating new thread for running new program and initialize temporary semaphore with 0 value.
+after that passing the created thread id to process_wait. Inside of that function we have semaphore_down that looks at temporary value and it is zero so it can not pass this line and the thread will wait. In result we can say that this program will not allow a thread to finish before running process_execute and executing semaphore_up inside of that. Of course if this OS could handle multi-threading this flow couldn't run like now because some threads exit and increament the semaphore and after that the new thread could prevent waiting because temporary is already a positive integer (multi-thread in pthread_create position of course inside of process_execute)
+
+sema_down is inside of process_wait function in process.c
+
+int
+process_wait (tid_t child_tid UNUSED)
+{
+  sema_down (&temporary);
+  return 0;
+}
 
 ۱۹.
 
