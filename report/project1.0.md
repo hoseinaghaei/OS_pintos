@@ -1,3 +1,4 @@
+<div dir="rtl">
 تمرین گروهی ۱/۰ - آشنایی با pintos
 ======================
 
@@ -203,3 +204,5 @@ so i think the return value sould be 12.
 ۱۸.
 
 ۱۹.
+
+</div>
