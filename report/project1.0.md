@@ -1,4 +1,5 @@
 <div dir="rtl">
+
 تمرین گروهی ۱/۰ - آشنایی با pintos
 ======================
 
@@ -13,6 +14,7 @@
 امیرمهدی کوششی amk_amir82@yahoo.com
 
 آرمین دلگسار ماهر arminmaher@gmail.com 
+
 
 </div>
 
