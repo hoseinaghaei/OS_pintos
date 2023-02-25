@@ -209,6 +209,7 @@ $1 = 1  ---> it is syscall code number
 (gdb) print args[1]
 $2 = 162 ---> it is exit code number 
 
+These two values are as same as the two values on the top of the stack in hex.
 ۱۸.
 
 ۱۹.
