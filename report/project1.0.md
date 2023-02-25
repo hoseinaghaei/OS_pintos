@@ -204,6 +204,10 @@ so i think the return value sould be 12.
 0xbfffff98:     0x00000001      0x000000a2
 
 ۱۷.
+(gdb) print args[0]
+$1 = 1  ---> it is syscall code number
+(gdb) print args[1]
+$2 = 162 ---> it is exit code number 
 
 ۱۸.
 
