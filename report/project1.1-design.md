@@ -96,7 +96,8 @@ Also we'll check NULL value of file pointer too to react suitable in this situat
 ------------
 > فرض کنید یک فراخوانی سیستمی باعث شود یک صفحه‌ی کامل (۴۰۹۶ بایت) از فضای کاربر در فضای هسته کپی شود. بیشترین و کمترین تعداد بررسی‌‌های جدول صفحات (page table) چقدر است؟ (تعداد دفعاتی که `pagedir_get_page()` صدا زده می‌شود.) در‌ یک فراخوانی سیستمی که فقط ۲ بایت کپی می‌شود چطور؟ آیا این عددها می‌توانند بهبود یابند؟ چقدر؟
 
-> پیاده‌سازی فراخوانی سیستمی `wait` را توضیح دهید و بگویید چگونه با پایان یافتن پردازه در ارتباط است.
+>پیاده‌سازی فراخوانی سیستمی `wait` را توضیح دهید و بگویید چگونه با پایان یافتن پردازه در ارتباط است.
+
 ok wait system call's behaviour is as same as its behaviour in Unix family of OS. The process that calls it should stop in that line until its child(one specified child by pid) ended and after that continue the running of the parent process. As you see in data structure part of these questions we added a struct to keep the data of process and its similar thread such as thread's state. When a process calls `wait` we have these data so first of all we will check the state of its thread. If it's `THREAD_BLOCKED` then there is no need to do anything else as we had in doc wait system call is for waiting for an specified child process so we assume that we have pid of child process next to data of process struct of parent process so we will find data of child process instance by its id and check its thread state. if its state is `THREAD_DYING` so we do nothing about changing parent process's thread state but on the other situations we will set its state to `THREAD_BLOCKED`. (thread_block func in thread.c)
 In the other hand when the specified thread gonna be changed at state we have a function called `schedule` in thread.c and we should use `thread_unblock` for cur_thread's parent in that function to awake its parent if it is on sleep.
 how to find the parent thread?
@@ -117,6 +118,26 @@ as you can remember we have defined a new struct for processes and we will keep 
 
 > طراحی شما برای توصیف‌کننده‌های فایل چه نقاط قوت و ضعفی دارد؟
 
+As mentioned above, for each thread we will store its own file descriptors as a list. here are this strategy's advantage and disadvantages:
+
+Advantages:
+
+```text
+Thread-safety:By keeping a list of file descriptors for each thread inside its struct, it ensures that each thread has its own set of file descriptors that cannot be accessed by other threads. This ensures thread safety and prevents race conditions that can occur when multiple threads try to access the same set of file descriptors simultaneously.
+
+Improved performance: When a thread wants to access a file descriptor, it can quickly find it in its own list without having to search through a global list of file descriptors. This can improve performance by reducing the time it takes to access file descriptors.
+
+Flexibility: By having a separate list of file descriptors for each thread, it allows each thread to have its own set of open files, which can be useful in some scenarios.
+```
+Disadvantages:
+
+```text
+Increased memory usage: Keeping a separate list of file descriptors for each thread can increase the memory usage of the system. This can be a concern in systems with limited memory resources.
+
+Increased complexity: Maintaining separate lists of file descriptors for each thread can add complexity to the operating system design. This can make it harder to debug and maintain the system.
+
+Limited scalability: Keeping a separate list of file descriptors for each thread may not be scalable in systems with a large number of threads. This is because each thread will have its own set of file descriptors, which can quickly add up and lead to resource constraints.  
+```
 > در حالت پیش‌فرض نگاشت `tid` به `pid` یک نگاشت همانی است. اگر این را تغییر داده‌اید، روی‌کرد شما چه نقاط قوتی دارد؟
 We will use one to one methodology. (no change)
 -----------------
