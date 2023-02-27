@@ -82,7 +82,7 @@ struct thread
   {
     ...
     struct list file_descriptor_list[MAX_FILE_DESCRIPTOR_COUNT];
-    struct *file exec_file;
+    struct file *exec_file;
     ...
   };
 ```
