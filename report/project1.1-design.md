@@ -40,6 +40,20 @@ seyyed alireza ghazanfari alireza79.ghazanfari@gmail.com
 ----------------
 > در این قسمت تعریف هر یک از `struct` ها، اعضای `struct` ها، متغیرهای سراسری یا ایستا، `typedef` ها یا `enum` هایی که ای.جاد کرده‌اید یا تغییر داده‌اید را بنویسید و دلیل هر کدام را در حداکثر ۲۵ کلمه توضیح دهید.
 
+We need to define a struct for handling file description like a mapping between integer values and file pointers. Then store list of that struct in running thread to look up for each file in the memory using this l
+list. And also for iteration in the list of whole files in memory, it is better to hook each file descriptor's next and previous file descriptors using list_elem struct. And obviously in this struct we need to store mapped file's pointer to file address to read the file.
+
+```c
+// path: /src/userprog/process.h
+typedef fid_t int;
+struct file_descriptor
+{
+struct file *file;
+struct list_elem file_descriptor_element;
+fid_t file_id;
+};
+```
+
 > توضیح دهید که توصیف‌کننده‌های فایل چگونه به فایل‌های باز مربوط می‌شوند. آیا این توصیف‌کننده‌ها در کل سیستم‌عامل به‌طور یکتا مشخص می‌شوند یا فقط برای هر پردازه یکتا هستند؟
 
 الگوریتم‌ها
