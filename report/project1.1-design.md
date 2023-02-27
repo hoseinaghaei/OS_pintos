@@ -46,6 +46,9 @@ seyyed alireza ghazanfari alireza79.ghazanfari@gmail.com
 ------------
 > توضیح دهید خواندن و نوشتن داده‌های کاربر از داخل هسته، در کد شما چگونه انجام شده است.
 
+for reading user's data and writing them too we should use system calls which we have in pintos such as read and write. Like each other operating systems which we worked with we should have a default set of file descriptors in file descriptor table and define some items like stdin, stdout and stderr by default for each process on its creation time. So for read and write syscalls we should just check that file's which we are given be STDIN and STDOUT and matchable with those file descriptors. With given address of file we will found file descriptor id from our saved hash map inside of each process and check that is the correct file or not.
+Also we'll check NULL value of file pointer too to react suitable in this situation. One last point is that we should handle running just one of read and write on an specific moment. So the simplest way to handle it is using a global variable as a lock (rw_lock) and acquire and release it at both read and write system call.
+------------
 > فرض کنید یک فراخوانی سیستمی باعث شود یک صفحه‌ی کامل (۴۰۹۶ بایت) از فضای کاربر در فضای هسته کپی شود. بیشترین و کمترین تعداد بررسی‌‌های جدول صفحات (page table) چقدر است؟ (تعداد دفعاتی که `pagedir_get_page()` صدا زده می‌شود.) در‌ یک فراخوانی سیستمی که فقط ۲ بایت کپی می‌شود چطور؟ آیا این عددها می‌توانند بهبود یابند؟ چقدر؟
 
 > پیاده‌سازی فراخوانی سیستمی `wait` را توضیح دهید و بگویید چگونه با پایان یافتن پردازه در ارتباط است.
