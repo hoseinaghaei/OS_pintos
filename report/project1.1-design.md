@@ -54,6 +54,25 @@ fid_t file_id;
 };
 ```
 
+And then as we told above, we need to add list of these structs in our thread struct, We defined a global variable 
+MAX_FILE_DESCRIPTOR_COUNT(.e.g 1024 for each process) to bound count of our file descriptors to avoid filling our memory.
+And also we preferred to add separate file pointer for current exec file in thread,
+because it is pretty easier to check if process doesn't try to access current exec file.
+
+```c
+// in thread struct
+int MAX_FILE_DESCRIPTOR_COUNT = 1024;
+
+struct thread
+  {
+    ...
+    struct list file_descriptor_list[MAX_FILE_DESCRIPTOR_COUNT];
+    struct *file exec_file;
+    ...
+  };
+```
+
+
 > توضیح دهید که توصیف‌کننده‌های فایل چگونه به فایل‌های باز مربوط می‌شوند. آیا این توصیف‌کننده‌ها در کل سیستم‌عامل به‌طور یکتا مشخص می‌شوند یا فقط برای هر پردازه یکتا هستند؟
 
 الگوریتم‌ها
