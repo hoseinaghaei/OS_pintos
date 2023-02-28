@@ -238,6 +238,8 @@ behaviour:
   : : "i" (SYS_EXIT)
   ```
   This is for identifying the inputs and outputs of assembly code. first `:` indicates outputs which is empty in this assembly code. Second `:` shows inputs that we have a constant value `"i" (SYS_EXIT)`. `SYS_EXIT` is a constant for calling the exit system call inside of kernel. The `"i"` constraint tells the compiler to generate code that loads the constant value into a register.
+  but where is the problem?
+  here when the assembly code want to push the input operand (SYS_EXIT constant) inside of stack your stack pointer is pointing to `0xc0000000` so this data should be in this address and upper which is not accessable address space for user so we will face segmentation error and this program will fail with the message of its last code line.
 -------------
 سوالات نظرخواهی
 ==============
