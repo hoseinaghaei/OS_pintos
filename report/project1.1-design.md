@@ -10,7 +10,7 @@ seyyed alireza ghazanfari alireza79.ghazanfari@gmail.com
 
 AmirMahdi kuusheshi amk_amir82@yahoo.com 
 
-نام و نام خانوادگی <example@example.com> 
+Hossein Aghaei h.aghaei.araei@gmail.com
 
 مقدمات
 ----------
@@ -83,17 +83,23 @@ also if we do this in shell, it can interpret commands and we can have more comp
 داده‌ساختار‌ها
 ----------------
 > در این قسمت تعریف هر یک از `struct` ها، اعضای `struct` ها، متغیرهای سراسری یا ایستا، `typedef` ها یا `enum` هایی که ای.جاد کرده‌اید یا تغییر داده‌اید را بنویسید و دلیل هر کدام را در حداکثر ۲۵ کلمه توضیح دهید.
+This is a lock which we will use to handle read and write synch problem.
+```c
+static struct loc rw_lock;
+```
 
-We have to keep data of process and reponse data of threads too. We have a one to one mapping between pid and tid so this struct should relates to thread. Each process has a parent and we should keep and we should save all processes in a list to catch them by pid and this is for keeping exit code and thread's inside data for access of process to them after finishing thread. 
+We have to keep data of process and reponse data of threads too. We have a one to one mapping between pid and tid so this struct should relates to thread. Each process has a parent and we should keep and we should save all processes in a list to catch them by pid and this is for keeping exit code and thread's inside data for access of process to them after finishing thread. For synch problem we added exit_code to have it for process's usages. 
 
 ```c
 // /src/threads/thread.c
 struct thread_status
 {
-    int pid;
-    int ppid;
-    struct thread* thread;
-    struct list_elem processes;
+   int pid;
+   int ppid;
+   int exit_code;
+   struct thread* thread;
+   struct list_elem processes;
+   struct semaphore wait_sem;
 };
 ```
 
@@ -151,19 +157,35 @@ ok wait system call's behaviour is as same as its behaviour in Unix family of OS
 In the other hand when the specified thread gonna be changed at state we have a function called `schedule` in thread.c and we should use `thread_unblock` for cur_thread's parent in that function to awake its parent if it is on sleep.
 how to find the parent thread?
 as you can remember we have defined a new struct for processes and we will keep all processes so we can find the parent process by filtering that list by their thread id and after that give the thread of parent process to unblock function.
-
 note that we change the name of struct fromm proccess to thread_status (because of changing the entity of data).
 
-------------
 > هر دستیابی هسته به حافظه‌ی برنامه‌ی کاربر، که آدرس آن را کاربر مشخص کرده است، ممکن است به دلیل مقدار نامعتبر اشاره‌گر منجر به شکست شود. در این صورت باید پردازه‌ی کاربر خاتمه داده شود. فراخوانی های سیستمی پر از چنین دستیابی‌هایی هستند. برای مثال فراخوانی سیستمی `write‍` نیاز دارد ابتدا شماره‌ی فراخوانی سیستمی را از پشته‌ی کاربر بخواند، سپس باید سه آرگومان ورودی و بعد از آن مقدار دلخواهی از حافظه کاربر را (که آرگومان ها به آن اشاره می کنند) بخواند. هر یک از این دسترسی ها به حافظه ممکن است با شکست مواجه شود. بدین ترتیب با یک مسئله‌ی طراحی و رسیدگی به خطا (error handling) مواجهیم. بهترین روشی که به ذهن شما می‌رسد تا از گم‌شدن مفهوم اصلی کد در بین شروط رسیدگی به خطا جلوگیری کند چیست؟ همچنین چگونه بعد از تشخیص خطا، از آزاد شدن تمامی منابع موقتی‌ای که تخصیص داده‌اید (قفل‌ها، بافر‌ها و...) مطمئن می‌شوید؟ در تعداد کمی پاراگراف، استراتژی خود را برای مدیریت این مسائل با ذکر مثال بیان کنید.
+
+we can have a error handling function and befoe accessing the arguments in stack, check that if they are in the user space or not using these 2 functions : 
+ 	1) is_user_vaddr
+ 	2) pagedir_get_page(current_thread->pagedir, addr)
+ 	
+if we got an error we return error status (like -1) to user and then release all resourses using thread_exit() function. if we wanna remove completely the pages that we got, we can use pagedir_destroy(int pd).
+    
 
 همگام‌سازی
 ---------------
 > فراخوانی سیستمی `exec` نباید قبل از پایان بارگذاری فایل اجرایی برگردد، چون در صورتی که بارگذاری فایل اجرایی با خطا مواجه شود باید `-۱` برگرداند. کد شما چگونه از این موضوع اطمینان حاصل می‌کند؟ چگونه وضعیت موفقیت یا شکست در اجرا به ریسه‌ای که `exec` را فراخوانی کرده اطلاع داده می‌شود؟
 
+So the first part of question is about this point that the process that is running exec shouldn't be terminated before loading the program completely. Obviously the description of question tells us that we should convert this part of a code to an atomic code (action). The only technique which we learned for doing this is semaphore (until this moment of course).
+first of all i think we need to save thread's exit code in a struct which process has access to it such as `thread_status`.
+For handling exec syscall in kernel we should use `process_execute` function in process.c. what we want in this step?
+we wanna wait after thread creation in process until loading completion. In other side if we had a complete load flow we should not wait in that location. So these two sentences are like the definitions of semaphore. We define a semaphore for each `thread_status` call `exec_sem` and use sema_down exactly after thread creationg in `process_execute` and sema_up exactly after loading in `start_process` for sharing the result of thread's exit code with process we have to set thread's exit code in thread_status instance related to that thread and in `process_execute` should use this data for returning the suitable exit code. 
+----------------
+
 > پردازه‌ی والد P و پردازه‌ی فرزند C را درنظر بگیرید. هنگامی که P فراخوانی `wait(C)` را اجرا می‌کند و C  هنوز خارج نشده است، توضیح دهید که چگونه همگام‌سازی مناسب را برای جلوگیری از ایجاد شرایط مسابقه (race condition) پیاده‌سازی کرده‌اید. وقتی که C از قبل خارج شده باشد چطور؟ در هر حالت چگونه از آزاد شدن تمامی منابع اطمینان حاصل می‌کنید؟ اگر P بدون منتظر ماندن، قبل از C خارج شود چطور؟ اگر بدون منتظر ماندن بعد از C خارج شود چطور؟ آیا حالت‌های خاصی وجود دارد؟
 
 First of all we should view the race condition. One scenario that we can think about is that the parent process calls wait and before its ending the child process finishes its job and it will be terminated. So this problem is a race condition. 
+ok for solving this problem we need to use synchronization methods in wait and thread execution parts of code. We'll define a semaphore for each thread inside of `thread_status` struct. We will use semaphore of child thread in parent process wait syscall and sema_down it to wait in that code until the child terminate and finish its work and use sema_up on its semaphore to free the waited parent and all resources. Of course we will put sema_down on child thread's semaphore in the beginning of its execution. The important point is that we initialize the semaphore by one when we create thread (more exact when we create thread_status).  
+so in first scenario C is finished before wait on P -> C will sema_down and semaphore is now 0 and then it finishes its job and frees all resources and incremeant semaphore so parent would not wait in semaphore.
+scenario 2:
+if P wants to finish before termination of C -> C decremeant semaphore and P should wait for it.
+about special situations. yes of course we didn't handle multi threading so it's not good for that kind of problems but for single thread form this solution is good enough to handle pintos tasks phase 1 yet.
 
 منطق طراحی
 -----------------
@@ -194,7 +216,6 @@ Limited scalability: Keeping a separate list of file descriptors for each thread
 > در حالت پیش‌فرض نگاشت `tid` به `pid` یک نگاشت همانی است. اگر این را تغییر داده‌اید، روی‌کرد شما چه نقاط قوتی دارد؟
 
 We will use one to one methodology. (no change)
------------------
 
 سوالات افزون بر طراحی
 ===========
@@ -246,9 +267,7 @@ behaviour:
   ```
   This is for identifying the inputs and outputs of assembly code. first `:` indicates outputs which is empty in this assembly code. Second `:` shows inputs that we have a constant value `"i" (SYS_EXIT)`. `SYS_EXIT` is a constant for calling the exit system call inside of kernel. The `"i"` constraint tells the compiler to generate code that loads the constant value into a register.
   but where is the problem?
-
-  Here when the assembly code want to push the input operand (SYS_EXIT constant) inside of stack your stack pointer is pointing to `0xc0000000` so this data should be in this address and upper which is not accessable address space for user so we will face segmentation error and this program will fail with the message of its last code line.
-  
+  here when the assembly code want to push the input operand (SYS_EXIT constant) inside of stack your stack pointer is pointing to `0xc0000000` (PHYS_BASE which is defined in guide doc) so this data should be in this address and upper which is not accessable address space for user so we will face segmentation error and this program will fail with the message of its last code line.
 -------------
 سوالات نظرخواهی
 ==============
@@ -272,3 +291,5 @@ Yes, withdraw the course.
 Yes, told them withdraw the course.
 
 > اگر نظر یا بازخورد دیگری دارید در این قسمت بنویسید.
+
+اهای تویی که سوالای بالایی رو اینطوری جواب دادی اگه راضی نیست از شرایط درس رو حذف کن:)
