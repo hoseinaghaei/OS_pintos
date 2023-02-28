@@ -84,15 +84,15 @@ also if we do this in shell, it can interpret commands and we can have more comp
 ----------------
 > در این قسمت تعریف هر یک از `struct` ها، اعضای `struct` ها، متغیرهای سراسری یا ایستا، `typedef` ها یا `enum` هایی که ای.جاد کرده‌اید یا تغییر داده‌اید را بنویسید و دلیل هر کدام را در حداکثر ۲۵ کلمه توضیح دهید.
 
-We have to keep data of process too. We have a one to one mapping between pid and tid so this struct should relates to thread. Each process has a parent and we should keep and we should save all processes in a list to catch them by pid. 
+We have to keep data of process and reponse data of threads too. We have a one to one mapping between pid and tid so this struct should relates to thread. Each process has a parent and we should keep and we should save all processes in a list to catch them by pid and this is for keeping exit code and thread's inside data for access of process to them after finishing thread. 
 
 ```c
 // /src/threads/thread.c
-struct process
+struct thread_status
 {
     int pid;
-    struct thread* main_thread;
-    struct process* parent_process;
+    int ppid;
+    struct thread* thread;
     struct list_elem processes;
 };
 ```
@@ -146,6 +146,8 @@ ok wait system call's behaviour is as same as its behaviour in Unix family of OS
 In the other hand when the specified thread gonna be changed at state we have a function called `schedule` in thread.c and we should use `thread_unblock` for cur_thread's parent in that function to awake its parent if it is on sleep.
 how to find the parent thread?
 as you can remember we have defined a new struct for processes and we will keep all processes so we can find the parent process by filtering that list by their thread id and after that give the thread of parent process to unblock function.
+
+note that we change the name of struct fromm proccess to thread_status (because of changing the entity of data).
 
 ------------
 > هر دستیابی هسته به حافظه‌ی برنامه‌ی کاربر، که آدرس آن را کاربر مشخص کرده است، ممکن است به دلیل مقدار نامعتبر اشاره‌گر منجر به شکست شود. در این صورت باید پردازه‌ی کاربر خاتمه داده شود. فراخوانی های سیستمی پر از چنین دستیابی‌هایی هستند. برای مثال فراخوانی سیستمی `write‍` نیاز دارد ابتدا شماره‌ی فراخوانی سیستمی را از پشته‌ی کاربر بخواند، سپس باید سه آرگومان ورودی و بعد از آن مقدار دلخواهی از حافظه کاربر را (که آرگومان ها به آن اشاره می کنند) بخواند. هر یک از این دسترسی ها به حافظه ممکن است با شکست مواجه شود. بدین ترتیب با یک مسئله‌ی طراحی و رسیدگی به خطا (error handling) مواجهیم. بهترین روشی که به ذهن شما می‌رسد تا از گم‌شدن مفهوم اصلی کد در بین شروط رسیدگی به خطا جلوگیری کند چیست؟ همچنین چگونه بعد از تشخیص خطا، از آزاد شدن تمامی منابع موقتی‌ای که تخصیص داده‌اید (قفل‌ها، بافر‌ها و...) مطمئن می‌شوید؟ در تعداد کمی پاراگراف، استراتژی خود را برای مدیریت این مسائل با ذکر مثال بیان کنید.
