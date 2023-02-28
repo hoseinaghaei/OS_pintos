@@ -137,6 +137,8 @@ as you can remember we have defined a new struct for processes and we will keep 
 
 > پردازه‌ی والد P و پردازه‌ی فرزند C را درنظر بگیرید. هنگامی که P فراخوانی `wait(C)` را اجرا می‌کند و C  هنوز خارج نشده است، توضیح دهید که چگونه همگام‌سازی مناسب را برای جلوگیری از ایجاد شرایط مسابقه (race condition) پیاده‌سازی کرده‌اید. وقتی که C از قبل خارج شده باشد چطور؟ در هر حالت چگونه از آزاد شدن تمامی منابع اطمینان حاصل می‌کنید؟ اگر P بدون منتظر ماندن، قبل از C خارج شود چطور؟ اگر بدون منتظر ماندن بعد از C خارج شود چطور؟ آیا حالت‌های خاصی وجود دارد؟
 
+First of all we should view the race condition. One scenario that we can think about is that the parent process calls wait and before its ending the child process finishes its job and it will be terminated. So this problem is a race condition. 
+
 منطق طراحی
 -----------------
 > به چه دلیل روش دسترسی به حافظه سطح کاربر از داخل هسته را این‌گونه پیاده‌سازی کرده‌اید؟
@@ -192,6 +194,32 @@ We saw this instruction all around the different syscalls. This is a software in
 
 > تستی را که هنگام اجرای فراخوانی سیستمی از یک اشاره‌گر پشته‌ی معتبر استفاده کرده ولی اشاره‌گر پشته آنقدر به مرز صفحه نزدیک است که برخی از آرگومان‌های فراخوانی سیستمی در جای نامعتبر مموری قرار گرفته اند مشخص کنید. پاسخ شما باید دقیق بوده و نام تست و چگونگی کارکرد آن را شامل شود.یک قسمت از خواسته‌های تمرین را که توسط مجموعه تست موجود تست نشده‌است، نام ببرید. سپس مشخص کنید تستی که این خواسته را پوشش بدهد چگونه باید باشد.
 
+-------------
+For the first part of this question:
+`sc-bad-arg.c`
+description:
+  Sticks a system call number (SYS_EXIT) at the very top of the stack, then invokes a system call with the stack pointer (%esp) set to its address.  The process must be terminated with -1 exit code because the argument to the system call would be above the top of the user address space.
+behaviour:
+  Again we have a `asm volatile` so it's an inline assembly code. First instruction of this assembly code is:
+  ```c
+  movl $0xbffffffc, %%esp
+  ```
+  This instruction moves the value `0xbffffffc` into the stack pointer register `esp`. This sets the stack pointer to the top of the user-space stack, which is a high address in memory.
+  ```c
+  movl %0, (%%esp)
+  ```
+  This moves the value of the first input operand `%0` into the memory location pointed to by the stack pointer register `%%esp`.
+  Next instruction again is:
+  ```c
+  int $0x30
+  ```
+  we reviewd this instruction in the last question.
+  and the last part is:
+  ```c
+  : : "i" (SYS_EXIT)
+  ```
+  This is for identifying the inputs and outputs of assembly code. first `:` indicates outputs which is empty in this assembly code. Second `:` shows inputs that we have an `i` input and a constant `SYS_EXIT` which will be put into a register to use in interrupt instruction for finding and hadling syscall suitable.
+-------------
 سوالات نظرخواهی
 ==============
 پاسخ به این سوالات اختیاری است، ولی پاسخ به آن‌ها می‌تواند به ما در بهبود درس در ترم‌های آینده کمک کند. هر چه در ذهن خود دارید بگویید. این سوالات برای دریافت افکار شما هستند. هم‌چنین می‌توانید پاسخ خود را به صورت ناشناس در انتهای ترم ارائه دهید.
