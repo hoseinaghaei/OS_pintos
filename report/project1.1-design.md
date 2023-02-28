@@ -6,7 +6,7 @@
 
 seyyed alireza ghazanfari alireza79.ghazanfari@gmail.com
 
-آرمین دلگسارماهر arminmaher@gmail.com
+Armin Delgosar Maher arminmaher@gmail.com
 
 AmirMahdi kuusheshi amk_amir82@yahoo.com 
 
@@ -64,7 +64,7 @@ static bool setup_stack(void **esp, int argc, char **argv);
 we set `argv[0]` before calling setup_stack, but it is also question how we process the arguments. we get a filename and after tokenize it, we set arguments reverse to the argv. in fact we init the argv[argc-1], then we init argv[argc-2] until we reach argv[1]. we set the argv[argc] NULL (somehow like personal hw1)
 we set the return address too, because when the stack pointer check all arguments and reached return address.
 
-this jobs will fill the stack, so we need to check if stack has empty space. we chacked thread struct and found a variable called `magic`. this variable checked if stack overflowed or not. we check magic ad stack pointer to find out if overflow occurred or not.
+this jobs will fill the stack, so we need to check if stack has empty space. we chacked thread struct and found a variable called `magic`. this variable checked if stack overflowed or not. also we set a maximum size of arguments, so if the filename be grather than our maximum size of arguments, then we can raise stack overflow and also we can ignore the command and do not execute it. 
 
 منطق طراحی
 -----------------
@@ -77,6 +77,8 @@ threads will work with this function. `strtok_r()` is thread safe and `strtok()`
 this will reduce the kernel complexity and increase its performence and efficienty. kernel would not handson parsing and checking arguments, it will only work with arguments, just this. kernel would be somehow generic.
 
 also if we do this in shell, it can interpret commands and we can have more complex and efficient command that help us better, and this complex commands would not any effect on kernel.
+
+shell would help kernel alot, because it can check if file exist and then execue it, it can handle the complexity and not press on kernel.
 
 فراخوانی‌های سیستمی
 ================
