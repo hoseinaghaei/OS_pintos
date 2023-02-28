@@ -32,10 +32,8 @@
 ## یافتن دستور معیوب
 
 ۱.
-    <pre> <code>
     mov    0x24(%esp),%eax
-    </code> </pre>
-address : 0xbfffffe4 + 0x24 = 0xc0000008 
+    address : 0xbfffffe4 + 0x24 = 0xc0000008 
 
 ۲.
     <br/>
