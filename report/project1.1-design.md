@@ -10,7 +10,7 @@ seyyed alireza ghazanfari alireza79.ghazanfari@gmail.com
 
 AmirMahdi kuusheshi amk_amir82@yahoo.com 
 
-نام و نام خانوادگی <example@example.com> 
+Hossein Aghaei h.aghaei.araei@gmail.com
 
 مقدمات
 ----------
