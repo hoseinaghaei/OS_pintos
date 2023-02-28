@@ -88,7 +88,7 @@ This is a lock which we will use to handle read and write synch problem.
 static struct loc rw_lock;
 ```
 
-We have to keep data of process and reponse data of threads too. We have a one to one mapping between pid and tid so this struct should relates to thread. Each process has a parent and we should keep and we should save all processes in a list to catch them by pid and this is for keeping exit code and thread's inside data for access of process to them after finishing thread. 
+We have to keep data of process and reponse data of threads too. We have a one to one mapping between pid and tid so this struct should relates to thread. Each process has a parent and we should keep and we should save all processes in a list to catch them by pid and this is for keeping exit code and thread's inside data for access of process to them after finishing thread. For synch problem we added exit_code to have it for process's usages. 
 
 ```c
 // /src/threads/thread.c
@@ -96,6 +96,7 @@ struct thread_status
 {
    int pid;
    int ppid;
+   int exit_code;
    struct thread* thread;
    struct list_elem processes;
    struct semaphore wait_sem;
@@ -158,13 +159,18 @@ how to find the parent thread?
 as you can remember we have defined a new struct for processes and we will keep all processes so we can find the parent process by filtering that list by their thread id and after that give the thread of parent process to unblock function.
 
 note that we change the name of struct fromm proccess to thread_status (because of changing the entity of data).
-
 ------------
 > هر دستیابی هسته به حافظه‌ی برنامه‌ی کاربر، که آدرس آن را کاربر مشخص کرده است، ممکن است به دلیل مقدار نامعتبر اشاره‌گر منجر به شکست شود. در این صورت باید پردازه‌ی کاربر خاتمه داده شود. فراخوانی های سیستمی پر از چنین دستیابی‌هایی هستند. برای مثال فراخوانی سیستمی `write‍` نیاز دارد ابتدا شماره‌ی فراخوانی سیستمی را از پشته‌ی کاربر بخواند، سپس باید سه آرگومان ورودی و بعد از آن مقدار دلخواهی از حافظه کاربر را (که آرگومان ها به آن اشاره می کنند) بخواند. هر یک از این دسترسی ها به حافظه ممکن است با شکست مواجه شود. بدین ترتیب با یک مسئله‌ی طراحی و رسیدگی به خطا (error handling) مواجهیم. بهترین روشی که به ذهن شما می‌رسد تا از گم‌شدن مفهوم اصلی کد در بین شروط رسیدگی به خطا جلوگیری کند چیست؟ همچنین چگونه بعد از تشخیص خطا، از آزاد شدن تمامی منابع موقتی‌ای که تخصیص داده‌اید (قفل‌ها، بافر‌ها و...) مطمئن می‌شوید؟ در تعداد کمی پاراگراف، استراتژی خود را برای مدیریت این مسائل با ذکر مثال بیان کنید.
 
 همگام‌سازی
 ---------------
 > فراخوانی سیستمی `exec` نباید قبل از پایان بارگذاری فایل اجرایی برگردد، چون در صورتی که بارگذاری فایل اجرایی با خطا مواجه شود باید `-۱` برگرداند. کد شما چگونه از این موضوع اطمینان حاصل می‌کند؟ چگونه وضعیت موفقیت یا شکست در اجرا به ریسه‌ای که `exec` را فراخوانی کرده اطلاع داده می‌شود؟
+
+So the first part of question is about this point that the process that is running exec shouldn't be terminated before loading the program completely. Obviously the description of question tells us that we should convert this part of a code to an atomic code (action). The only technique which we learned for doing this is semaphore (until this moment of course).
+first of all i think we need to save thread's exit code in a struct which process has access to it such as `thread_status`.
+For handling exec syscall in kernel we should use `process_execute` function in process.c. what we want in this step?
+we wanna wait after thread creation in process until loading completion. In other side if we had a complete load flow we should not wait in that location. So these two sentences are like the definitions of semaphore. We define a semaphore for each `thread_status` call `exec_sem` and use sema_down exactly after thread creationg in `process_execute` and sema_up exactly after loading in `start_process` for sharing the result of thread's exit code with process we have to set thread's exit code in thread_status instance related to that thread and in `process_execute` should use this data for returning the suitable exit code. 
+----------------
 
 > پردازه‌ی والد P و پردازه‌ی فرزند C را درنظر بگیرید. هنگامی که P فراخوانی `wait(C)` را اجرا می‌کند و C  هنوز خارج نشده است، توضیح دهید که چگونه همگام‌سازی مناسب را برای جلوگیری از ایجاد شرایط مسابقه (race condition) پیاده‌سازی کرده‌اید. وقتی که C از قبل خارج شده باشد چطور؟ در هر حالت چگونه از آزاد شدن تمامی منابع اطمینان حاصل می‌کنید؟ اگر P بدون منتظر ماندن، قبل از C خارج شود چطور؟ اگر بدون منتظر ماندن بعد از C خارج شود چطور؟ آیا حالت‌های خاصی وجود دارد؟
 
@@ -280,3 +286,5 @@ Yes, withdraw the course.
 Yes, told them withdraw the course.
 
 > اگر نظر یا بازخورد دیگری دارید در این قسمت بنویسید.
+
+اهای تویی که سوالای بالایی رو اینطوری جواب دادی اگه راضی نیست از شرایط درس رو حذف کن:)
