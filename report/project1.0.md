@@ -46,26 +46,13 @@
 
     grep -rnw 'lib/' -e '_start'
    
-    ```
-    lib/user/user.lds:3:ENTRY(_start) 
-    lib/user/entry.c:4:void _start (int argc, char *argv[]);  
-    lib/user/entry.c:7:_start (int argc, char *argv[])
-    ```
+```
+lib/user/user.lds:3:ENTRY(_start) 
+lib/user/entry.c:4:void _start (int argc, char *argv[]);  
+lib/user/entry.c:7:_start (int argc, char *argv[])
+```
 
-    ```c
-    #include <syscall.h>
-
-    int main (int, char *[]);
-    void _start (int argc, char *argv[]);
-
-    void
-    _start (int argc, char *argv[])
-    {
-    exit (main (argc, argv));
-    }
-    ```
-   
-   ```c
+```c
 #include <syscall.h>
 
 int main (int, char *[]);
@@ -76,7 +63,7 @@ _start (int argc, char *argv[])
 {
   exit (main (argc, argv));
 }
-   ```
+```
 <pre> <code>
     08048754 <_start>:                                                                                      
     8048754:       83 ec 1c                sub    $0x1c,%esp                                                
