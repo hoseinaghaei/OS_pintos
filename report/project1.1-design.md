@@ -83,6 +83,10 @@ also if we do this in shell, it can interpret commands and we can have more comp
 داده‌ساختار‌ها
 ----------------
 > در این قسمت تعریف هر یک از `struct` ها، اعضای `struct` ها، متغیرهای سراسری یا ایستا، `typedef` ها یا `enum` هایی که ای.جاد کرده‌اید یا تغییر داده‌اید را بنویسید و دلیل هر کدام را در حداکثر ۲۵ کلمه توضیح دهید.
+This is a lock which we will use to handle read and write synch problem.
+```c
+static struct loc rw_lock;
+```
 
 We have to keep data of process and reponse data of threads too. We have a one to one mapping between pid and tid so this struct should relates to thread. Each process has a parent and we should keep and we should save all processes in a list to catch them by pid and this is for keeping exit code and thread's inside data for access of process to them after finishing thread. 
 
@@ -90,10 +94,11 @@ We have to keep data of process and reponse data of threads too. We have a one t
 // /src/threads/thread.c
 struct thread_status
 {
-    int pid;
-    int ppid;
-    struct thread* thread;
-    struct list_elem processes;
+   int pid;
+   int ppid;
+   struct thread* thread;
+   struct list_elem processes;
+   struct semaphore wait_sem;
 };
 ```
 
@@ -159,6 +164,11 @@ note that we change the name of struct fromm proccess to thread_status (because 
 > پردازه‌ی والد P و پردازه‌ی فرزند C را درنظر بگیرید. هنگامی که P فراخوانی `wait(C)` را اجرا می‌کند و C  هنوز خارج نشده است، توضیح دهید که چگونه همگام‌سازی مناسب را برای جلوگیری از ایجاد شرایط مسابقه (race condition) پیاده‌سازی کرده‌اید. وقتی که C از قبل خارج شده باشد چطور؟ در هر حالت چگونه از آزاد شدن تمامی منابع اطمینان حاصل می‌کنید؟ اگر P بدون منتظر ماندن، قبل از C خارج شود چطور؟ اگر بدون منتظر ماندن بعد از C خارج شود چطور؟ آیا حالت‌های خاصی وجود دارد؟
 
 First of all we should view the race condition. One scenario that we can think about is that the parent process calls wait and before its ending the child process finishes its job and it will be terminated. So this problem is a race condition. 
+ok for solving this problem we need to use synchronization methods in wait and thread execution parts of code. We'll define a semaphore for each thread inside of `thread_status` struct. We will use semaphore of child thread in parent process wait syscall and sema_down it to wait in that code until the child terminate and finish its work and use sema_up on its semaphore to free the waited parent and all resources. Of course we will put sema_down on child thread's semaphore in the beginning of its execution. The important point is that we initialize the semaphore by one when we create thread (more exact when we create thread_status).  
+so in first scenario C is finished before wait on P -> C will sema_down and semaphore is now 0 and then it finishes its job and frees all resources and incremeant semaphore so parent would not wait in semaphore.
+scenario 2:
+if P wants to finish before termination of C -> C decremeant semaphore and P should wait for it.
+about special situations. yes of course we didn't handle multi threading so it's not good for that kind of problems but for single thread form this solution is good enough to handle pintos tasks phase 1 yet.
 
 منطق طراحی
 -----------------
@@ -241,7 +251,7 @@ behaviour:
   ```
   This is for identifying the inputs and outputs of assembly code. first `:` indicates outputs which is empty in this assembly code. Second `:` shows inputs that we have a constant value `"i" (SYS_EXIT)`. `SYS_EXIT` is a constant for calling the exit system call inside of kernel. The `"i"` constraint tells the compiler to generate code that loads the constant value into a register.
   but where is the problem?
-  here when the assembly code want to push the input operand (SYS_EXIT constant) inside of stack your stack pointer is pointing to `0xc0000000` so this data should be in this address and upper which is not accessable address space for user so we will face segmentation error and this program will fail with the message of its last code line.
+  here when the assembly code want to push the input operand (SYS_EXIT constant) inside of stack your stack pointer is pointing to `0xc0000000` (PHYS_BASE which is defined in guide doc) so this data should be in this address and upper which is not accessable address space for user so we will face segmentation error and this program will fail with the message of its last code line.
 -------------
 سوالات نظرخواهی
 ==============
