@@ -179,7 +179,9 @@ if we got an error we return error status (like -1) to user and then release all
 So the first part of question is about this point that the process that is running exec shouldn't be terminated before loading the program completely. Obviously the description of question tells us that we should convert this part of a code to an atomic code (action). The only technique which we learned for doing this is semaphore (until this moment of course).
 first of all i think we need to save thread's exit code in a struct which process has access to it such as `thread_status`.
 For handling exec syscall in kernel we should use `process_execute` function in process.c. what we want in this step?
+
 we wanna wait after thread creation in process until loading completion. In other side if we had a complete load flow we should not wait in that location. So these two sentences are like the definitions of semaphore. We define a semaphore for each `thread_status` call `exec_sem` and use sema_down exactly after thread creationg in `process_execute` and sema_up exactly after loading in `start_process` for sharing the result of thread's exit code with process we have to set thread's exit code in thread_status instance related to that thread and in `process_execute` should use this data for returning the suitable exit code. 
+
 ----------------
 
 > پردازه‌ی والد P و پردازه‌ی فرزند C را درنظر بگیرید. هنگامی که P فراخوانی `wait(C)` را اجرا می‌کند و C  هنوز خارج نشده است، توضیح دهید که چگونه همگام‌سازی مناسب را برای جلوگیری از ایجاد شرایط مسابقه (race condition) پیاده‌سازی کرده‌اید. وقتی که C از قبل خارج شده باشد چطور؟ در هر حالت چگونه از آزاد شدن تمامی منابع اطمینان حاصل می‌کنید؟ اگر P بدون منتظر ماندن، قبل از C خارج شود چطور؟ اگر بدون منتظر ماندن بعد از C خارج شود چطور؟ آیا حالت‌های خاصی وجود دارد؟
