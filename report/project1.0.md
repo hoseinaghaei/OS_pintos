@@ -43,8 +43,8 @@
     mov    0x24(%esp),%eax
   
 ۴.
-<br/>
-`grep -rnw 'lib/' -e '_start'`
+
+    `grep -rnw 'lib/' -e '_start'`
    
 <pre> <code>
     lib/user/user.lds:3:ENTRY(_start) 
@@ -65,6 +65,18 @@
     }
 </code> </pre>
    
+   ```c
+#include <syscall.h>
+
+int main (int, char *[]);
+void _start (int argc, char *argv[]);
+
+void
+_start (int argc, char *argv[])
+{
+  exit (main (argc, argv));
+}
+   ```
 <pre> <code>
     08048754 <_start>:                                                                                      
     8048754:       83 ec 1c                sub    $0x1c,%esp                                                
