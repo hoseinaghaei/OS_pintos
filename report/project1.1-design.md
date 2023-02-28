@@ -237,7 +237,7 @@ behaviour:
   ```c
   : : "i" (SYS_EXIT)
   ```
-  This is for identifying the inputs and outputs of assembly code. first `:` indicates outputs which is empty in this assembly code. Second `:` shows inputs that we have an `i` input and a constant `SYS_EXIT` which will be put into a register to use in interrupt instruction for finding and hadling syscall suitable.
+  This is for identifying the inputs and outputs of assembly code. first `:` indicates outputs which is empty in this assembly code. Second `:` shows inputs that we have a constant value `"i" (SYS_EXIT)`. `SYS_EXIT` is a constant for calling the exit system call inside of kernel. The `"i"` constraint tells the compiler to generate code that loads the constant value into a register.
 -------------
 سوالات نظرخواهی
 ==============
