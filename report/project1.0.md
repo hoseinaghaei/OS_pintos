@@ -32,43 +32,38 @@
 ## یافتن دستور معیوب
 
 ۱.
-    <pre> <code>
     mov    0x24(%esp),%eax
-    </code> </pre>
-address : 0xbfffffe4 + 0x24 = 0xc0000008 
+    address : 0xbfffffe4 + 0x24 = 0xc0000008 
 
 ۲.
-    <br/>
     0x8048757
     
 ۳.
-<br/>
-a) _start <br/>
-b) <br/> <pre> <code> mov    0x24(%esp),%eax </code> </pre>
+    at function `_start`
+    mov    0x24(%esp),%eax
   
 ۴.
-<br/>
-`grep -rnw 'lib/' -e '_start'`
+
+    grep -rnw 'lib/' -e '_start'
    
-<pre> <code>
-    lib/user/user.lds:3:ENTRY(_start) 
-    lib/user/entry.c:4:void _start (int argc, char *argv[]);  
-    lib/user/entry.c:7:_start (int argc, char *argv[])
-</code> </pre>
+```
+lib/user/user.lds:3:ENTRY(_start) 
+lib/user/entry.c:4:void _start (int argc, char *argv[]);  
+lib/user/entry.c:7:_start (int argc, char *argv[])
+```
 
-<pre> <code>
-    #include <syscall.h>
+```c
+#include <syscall.h>
 
-    int main (int, char *[]);
-    void _start (int argc, char *argv[]);
+int main (int, char *[]);
+void _start (int argc, char *argv[]);
 
-    void
-    _start (int argc, char *argv[])
-    {
-    exit (main (argc, argv));
-    }
-</code> </pre>
-   
+void
+_start (int argc, char *argv[])
+{
+  exit (main (argc, argv));
+}
+```
 <pre> <code>
     08048754 <_start>:                                                                                      
     8048754:       83 ec 1c                sub    $0x1c,%esp                                                
@@ -91,9 +86,9 @@ b) <br/> <pre> <code> mov    0x24(%esp),%eax </code> </pre>
 ## به سوی crash
 
 ۶.
-<br/>
-0xc000e000, main <br/>
-idle <br/>
+
+    0xc000e000, main
+    idle
 
 <pre> <code>
 pintos-debug: dumplist #0: 0xc000e000 {tid = 1, status = THREAD_RUNNING, name = "main", '\000' <repeats 11 times>, stack = 0xc000edec <incomplete sequence \357>, priority = 31, allelem = {
@@ -108,7 +103,8 @@ pintos-debug: dumplist #1: 0xc0104000 {tid = 2, status = THREAD_BLOCKED, name = 
 #2  0xc0020921 in run_actions (argv=0xc00357cc <argv+12>) at ../../threads/init.c:340
 #3  main () at ../../threads/init.c:133
 </code> </pre>
-------
+
+
 <pre> <code>
 sema_init (&temporary, 0);
 process_wait (process_execute (task));
@@ -116,9 +112,17 @@ a->function (argv);
 run_actions (argv);
 </code> </pre>
 
+<pre> <code>
+
+
+</code> </pre>
+
+
 ۸.
-<br/>
-main, idle, do-nothing\000\000\000\000\000
+
+    main, idle, do-nothing\000\000\000\000\000
+
+
 <pre> <code>
 pintos-debug: dumplist #0: 0xc000e000 {tid = 1, status = THREAD_BLOCKED, name = "main", '\000' <repeats 11 times>, stack = 0xc000eeac "\001", priority = 31, allelem = {prev = 0xc0035910 <all_list>, next = 0xc0104020}, elem = {prev = 0xc0037314 <temporary+4>, next = 0xc003731c <temporary+12>}, pagedir = 0x0, magic = 3446325067}
 pintos-debug: dumplist #1: 0xc0104000 {tid = 2, status = THREAD_BLOCKED, name = "idle", '\000' <repeats 11 times>, stack = 0xc0104f34 "", priority = 0, allelem = {prev = 0xc000e020, next =0xc010a020}, elem = {prev = 0xc0035920 <ready_list>, next = 0xc0035928 <ready_list+8>}, pagedir = 0x0, magic = 3446325067}
@@ -181,9 +185,8 @@ fs             0x23     35
 gs             0x23     35
 </code> </pre>
 ۱۳. 
-<pre> <code>
-	#0  _start (argc=<unavailable>, argv=<unavailable>) at ../../lib/user/entry.c:9
-</code> </pre>
+
+    #0  _start (argc=<unavailable>, argv=<unavailable>) at ../../lib/user/entry.c:9
 
 ## دیباگ
 
@@ -191,9 +194,9 @@ gs             0x23     35
 همانطور که در بخش ۴ مشاهده کردیم در تابع _start برای قرار دادن argv و argc مربوط به ورودی های main به مشکل میخوریم.
 پس کافیست تا مقدار درون ثبات استک پوینتر را جابجا کنیم تا در محدوده حافظه در دسترس برنامه قرار گیرد محل قرار دادن argv و argc
 پس بدین ترتیب میزانی که قرار است در دستوری که باعث ایجاد مشکل segmentation error میشود را در همین مرحله preload از ثبات استک کم مکنیم.
-<pre> <code>
-if_.esp -= 0x24;
-</code> </pre>
+
+    if_.esp -= 0x24;
+
 این کد را قبل از asm volatile قرار میدهیم تا پیش از اینکه دسترسی به userspace برود این اطمینان را داشته باشیم که در ان فضا به مشکل عدم دسترسی بر نخواهیم خورد.
 
 

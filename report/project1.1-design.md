@@ -118,7 +118,7 @@ fid_t file_id;
 
 > توضیح دهید که توصیف‌کننده‌های فایل چگونه به فایل‌های باز مربوط می‌شوند. آیا این توصیف‌کننده‌ها در کل سیستم‌عامل به‌طور یکتا مشخص می‌شوند یا فقط برای هر پردازه یکتا هستند؟
 
-As we told above, we need to add list of these structs in our thread struct, We defined a global variable
+Actually each process(and also thread because they have 1-to-1 relationship) has its own file descriptors, and it is not implemented as a global list in whole system. About the implementation, as we told above, we need to add list of these structs in our thread struct, We defined a global variable
 MAX_FILE_DESCRIPTOR_COUNT(.e.g 1024 for each process) to bound count of our file descriptors to avoid filling our memory.
 And also we preferred to add separate file pointer for current exec file in thread,
 because it is pretty easier to check if process doesn't try to access current exec file.
@@ -142,8 +142,13 @@ struct thread
 
 for reading user's data and writing them too we should use system calls which we have in pintos such as read and write. Like each other operating systems which we worked with we should have a default set of file descriptors in file descriptor table and define some items like stdin, stdout and stderr by default for each process on its creation time. So for read and write syscalls we should just check that file's which we are given be STDIN and STDOUT and matchable with those file descriptors. With given address of file we will found file descriptor id from our saved hash map inside of each process and check that is the correct file or not.
 Also we'll check NULL value of file pointer too to react suitable in this situation. One last point is that we should handle running just one of read and write on an specific moment. So the simplest way to handle it is using a global variable as a lock (rw_lock) and acquire and release it at both read and write system call.
-------------
+
+
 > فرض کنید یک فراخوانی سیستمی باعث شود یک صفحه‌ی کامل (۴۰۹۶ بایت) از فضای کاربر در فضای هسته کپی شود. بیشترین و کمترین تعداد بررسی‌‌های جدول صفحات (page table) چقدر است؟ (تعداد دفعاتی که `pagedir_get_page()` صدا زده می‌شود.) در‌ یک فراخوانی سیستمی که فقط ۲ بایت کپی می‌شود چطور؟ آیا این عددها می‌توانند بهبود یابند؟ چقدر؟
+
+We know each page in user side has a virtual address and if we want to be aware of which physical address they are mapped to we should call pagedir_get_page() function for each process. Here we have a full page with size of 4096 bytes. In the worst case every byte of this full page has different virtual address then we need to call pagedir_get_page() 4096 times to find out what are the whole pages addresses.(Actually here I just mentioned the times we need to call pagedir_get_page() to get each `PTE`(page table entry) but in fact we also need to call another function to fetch `page directory` then using that we can get `page entries`, then this will add another function calls). and in the best case our full page is located in single page then we only need to call pagedir_get_page() once.(We assumed that each page has size of 4kb in our system). We can improve this numbers using some tricks like: `Have grater page sizes in our memory` or `Use better memory management scheme(Here we thought by default it is straight forward)` or `We can optimize our code` or maybe `Use hardware suppport`.
+and for amount of copied bytes in each syscall we can use `memcpy()` to copy larger scales from user side to kernel side, this works fine but has some side effects like latency and higher memory usage in each syscall.
+
 
 >پیاده‌سازی فراخوانی سیستمی `wait` را توضیح دهید و بگویید چگونه با پایان یافتن پردازه در ارتباط است.
 
@@ -259,10 +264,19 @@ behaviour:
 
 > به نظر شما، این تمرین یا هر یک از سه بخش آن، آسان یا سخت بودند؟ آیا وقت خیلی کم یا وقت خیلی زیادی گرفتند؟
 
+Very hard.
+Very ziad
+
 > آیا شما بخشی را در تمرین یافتید که دید عمیق‌تری نسبت به طراحی سیستم عامل به شما بدهد؟
+
+No, not at all.
 
 > آیا مسئله یا راهنمایی خاصی وجود دارد که بخواهید برای حل مسائل تمرین به دانشجویان ترم‌های آینده بگویید؟
 
+Yes, withdraw the course.
+
 > آیا توصیه‌ای برای دستیاران آموزشی دارید که چگونه دانشجویان را در ترم‌های آینده یا در ادامه‌ی ترم بهتر یاری کنند؟
+
+Yes, told them withdraw the course.
 
 > اگر نظر یا بازخورد دیگری دارید در این قسمت بنویسید.
