@@ -36,13 +36,11 @@
     address : 0xbfffffe4 + 0x24 = 0xc0000008 
 
 ۲.
-    <br/>
     0x8048757
     
 ۳.
-<br/>
-a) _start <br/>
-b) <br/> <pre> <code> mov    0x24(%esp),%eax </code> </pre>
+    at function `_start`
+    mov    0x24(%esp),%eax
   
 ۴.
 <br/>
