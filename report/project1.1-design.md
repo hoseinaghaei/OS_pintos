@@ -70,7 +70,13 @@ this jobs will fill the stack, so we need to check if stack has empty space. we 
 -----------------
 > چرا Pintos به‌جای تابع‌ `strtok()` تابع‌ `strtok_r()` را پیاده‌سازی کرده‌است؟
 
+threads will work with this function. `strtok_r()` is thread safe and `strtok()` is not. in `strtok` the last token staticaly implemented by function, so when thread wants to call this function, this would occur race condition between threads. so it works with `strtok_r()` so all threads can work with it safely.
+
 > در Pintos عمل جدا کردن نام فایل از آرگومان‌ها، در داخل کرنل انجام می‌شود. در سیستم عامل‌های برپایه‌ی Unix، این عمل توسط shell انجام می‌شود. حداقل دو مورد از برتری‌های رویکرد Unix را توضیح دهید.
+
+this will reduce the kernel complexity and increase its performence and efficienty. kernel would not handson parsing and checking arguments, it will only work with arguments, just this. kernel would be somehow generic.
+
+also if we do this in shell, it can interpret commands and we can have more complex and efficient command that help us better, and this complex commands would not any effect on kernel.
 
 فراخوانی‌های سیستمی
 ================
