@@ -83,6 +83,7 @@ also if we do this in shell, it can interpret commands and we can have more comp
 داده‌ساختار‌ها
 ----------------
 > در این قسمت تعریف هر یک از `struct` ها، اعضای `struct` ها، متغیرهای سراسری یا ایستا، `typedef` ها یا `enum` هایی که ای.جاد کرده‌اید یا تغییر داده‌اید را بنویسید و دلیل هر کدام را در حداکثر ۲۵ کلمه توضیح دهید.
+
 This is a lock which we will use to handle read and write synch problem.
 ```c
 static struct loc rw_lock;
@@ -100,6 +101,7 @@ struct thread_status
    struct thread* thread;
    struct list_elem processes;
    struct semaphore wait_sem;
+   struct semaphore exec_sem;
 };
 ```
 
