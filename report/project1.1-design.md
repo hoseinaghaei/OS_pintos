@@ -151,6 +151,24 @@ We will use one to one methodology. (no change)
 ===========
 > تستی را که هنگام اجرای فراخوانی سیستمی از یک اشاره‌گر پشته‌ی(esp) نامعتبر استفاده کرده است بیابید. پاسخ شما باید دقیق بوده و نام تست و چگونگی کارکرد آن را شامل شود.
 
+`sc-bad-sp.c` is the test which invokes a system call with the stack pointer (%esp) set to a bad address.  The process must be terminated with -1 exit code.
+explanation:
+```c
+  asm volatile ("movl $.-(64*1024*1024), %esp; int $0x30");
+```
+This is the only part of this test which we should talk about.
+Obviously it contains inline assemble code.
+first instruction of this assembly code is:
+```c
+movl $.-(64*1024*1024), %esp
+```
+This instruction moves the value `$.-(64*1024*1024)` into the `esp` register. `$` indicates immediate value and `.` refers to the current program counter (PC) location. So the behaviour of this instruction is using the current PC location minus 64 megabytes to set a new stack pointer value for its register.
+The next instruction is:
+```c
+int $0x30
+```
+We saw this instruction all around the different syscalls. This is a software interrupt with the value `0x30` which is used to request a system call and change the kernel mode to user mode. So it will end the process because it has no specified system call so it just exit the current process and finish the job.
+
 > تستی را که هنگام اجرای فراخوانی سیستمی از یک اشاره‌گر پشته‌ی معتبر استفاده کرده ولی اشاره‌گر پشته آنقدر به مرز صفحه نزدیک است که برخی از آرگومان‌های فراخوانی سیستمی در جای نامعتبر مموری قرار گرفته اند مشخص کنید. پاسخ شما باید دقیق بوده و نام تست و چگونگی کارکرد آن را شامل شود.یک قسمت از خواسته‌های تمرین را که توسط مجموعه تست موجود تست نشده‌است، نام ببرید. سپس مشخص کنید تستی که این خواسته را پوشش بدهد چگونه باید باشد.
 
 سوالات نظرخواهی
