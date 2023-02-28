@@ -139,6 +139,7 @@ Increased complexity: Maintaining separate lists of file descriptors for each th
 Limited scalability: Keeping a separate list of file descriptors for each thread may not be scalable in systems with a large number of threads. This is because each thread will have its own set of file descriptors, which can quickly add up and lead to resource constraints.  
 ```
 > در حالت پیش‌فرض نگاشت `tid` به `pid` یک نگاشت همانی است. اگر این را تغییر داده‌اید، روی‌کرد شما چه نقاط قوتی دارد؟
+
 We will use one to one methodology. (no change)
 -----------------
 
