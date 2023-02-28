@@ -193,6 +193,8 @@ about special situations. yes of course we didn't handle multi threading so it's
 -----------------
 > به چه دلیل روش دسترسی به حافظه سطح کاربر از داخل هسته را این‌گونه پیاده‌سازی کرده‌اید؟
 
+according to warmuح document, there are two ways to check and handle user access memory. we choose the first one because it is easier than way two to implememting and we are really lazy. in this way we just need to check a pointer and then handle the user access memory. altough the second way is faster beside its complexity.
+
 > طراحی شما برای توصیف‌کننده‌های فایل چه نقاط قوت و ضعفی دارد؟
 
 As mentioned above, for each thread we will store its own file descriptors as a list. here are this strategy's advantage and disadvantages:
@@ -269,7 +271,9 @@ behaviour:
   ```
   This is for identifying the inputs and outputs of assembly code. first `:` indicates outputs which is empty in this assembly code. Second `:` shows inputs that we have a constant value `"i" (SYS_EXIT)`. `SYS_EXIT` is a constant for calling the exit system call inside of kernel. The `"i"` constraint tells the compiler to generate code that loads the constant value into a register.
   but where is the problem?
+
   here when the assembly code want to push the input operand (SYS_EXIT constant) inside of stack your stack pointer is pointing to `0xc0000000` (PHYS_BASE which is defined in guide doc) so this data should be in this address and upper which is not accessable address space for user so we will face segmentation error and this program will fail with the message of its last code line.
+
 -------------
 سوالات نظرخواهی
 ==============
