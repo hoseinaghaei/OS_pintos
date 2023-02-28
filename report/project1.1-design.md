@@ -30,13 +30,13 @@ googela googela, github, cs162 berkley, stanford documentationo for pintos, chat
 
 refer to the doc, we need to use `argc` and `argv` for our filename and syscalls. So, at first we define and init them.
 ```c
-char *argc;
+int argc;
 char **argv;
 ```
 We can also define `argv` like code below:
 
 ```c
-#DEFINE MAX_ARG_SIZE 64
+#define MAX_ARG_SIZE 64
 char *argv[MAX_ARG_SIZE];
 ```
 
@@ -52,6 +52,19 @@ typedef char *token;
 الگوریتم‌ها
 ------------
 > به‌طور خلاصه توضیح دهید چگونه آرگومان‌ها را پردازش کرده‌اید؟ چگونه اعضای `argv[]` را به ترتیب درست در پشته قرار داده‌اید؟ و چگونه از سرریز پشته جلوگیری کرده‌اید؟
+
+we use our tokenize function before calling `filesys_open()`, so we have to call it in load in proccess.c. we also set `argv` and `argc`.
+
+we need to change `setup_stack()` too.  this function just has esp in its params, we also add `argc` and `argv` too.
+
+```c
+static bool setup_stack(void **esp, int argc, char **argv);
+```
+
+we set `argv[0]` before calling setup_stack, but it is also question how we process the arguments. we get a filename and after tokenize it, we set arguments reverse to the argv. in fact we init the argv[argc-1], then we init argv[argc-2] until we reach argv[1]. we set the argv[argc] NULL (somehow like personal hw1)
+we set the return address too, because when the stack pointer check all arguments and reached return address.
+
+this jobs will fill the stack, so we need to check if stack has empty space. we chacked thread struct and found a variable called `magic`. this variable checked if stack overflowed or not. we check magic ad stack pointer to find out if overflow occurred or not.
 
 منطق طراحی
 -----------------
