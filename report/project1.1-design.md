@@ -8,7 +8,7 @@ seyyed alireza ghazanfari alireza79.ghazanfari@gmail.com
 
 آرمین دلگسارماهر arminmaher@gmail.com
 
-نام و نام خانوادگی <example@example.com> 
+AmirMahdi kuusheshi amk_amir82@yahoo.com 
 
 نام و نام خانوادگی <example@example.com> 
 
@@ -18,11 +18,36 @@ seyyed alireza ghazanfari alireza79.ghazanfari@gmail.com
 
 > لطفا در این قسمت تمامی منابعی (غیر از مستندات Pintos، اسلاید‌ها و دیگر منابع درس) را که برای تمرین از آن‌ها استفاده کرده‌اید در این قسمت بنویسید.
 
+```
+googela googela, github, cs162 berkley, stanford documentationo for pintos, chatgpt.
+```
+
 پاس‌دادن آرگومان
 ============
 داده‌ساختار‌ها
 ----------------
 > در این قسمت تعریف هر یک از `struct` ها، اعضای `struct` ها، متغیرهای سراسری یا ایستا، `typedef` ها یا `enum` هایی که ایجاد کرده‌اید یا تغییر داده‌اید را بنویسید و دلیل هر کدام را در حداکثر ۲۵ کلمه توضیح دهید.
+
+refer to the doc, we need to use `argc` and `argv` for our filename and syscalls. So, at first we define and init them.
+```c
+char *argc;
+char **argv;
+```
+We can also define `argv` like code below:
+
+```c
+#DEFINE MAX_ARG_SIZE 64
+char *argv[MAX_ARG_SIZE];
+```
+
+when a filename comes, we need to parse and tokenize it, so we need a function that tokenize that for us by space. at first we need to check is the filename tokenable, then if it was, we token it and set it in `argv`,
+```c
+int check_if_fn_tokenable(char *filename);
+```
+
+```c
+typedef char *token;
+```
 
 الگوریتم‌ها
 ------------
@@ -95,10 +120,6 @@ for reading user's data and writing them too we should use system calls which we
 Also we'll check NULL value of file pointer too to react suitable in this situation. One last point is that we should handle running just one of read and write on an specific moment. So the simplest way to handle it is using a global variable as a lock (rw_lock) and acquire and release it at both read and write system call.
 ------------
 > فرض کنید یک فراخوانی سیستمی باعث شود یک صفحه‌ی کامل (۴۰۹۶ بایت) از فضای کاربر در فضای هسته کپی شود. بیشترین و کمترین تعداد بررسی‌‌های جدول صفحات (page table) چقدر است؟ (تعداد دفعاتی که `pagedir_get_page()` صدا زده می‌شود.) در‌ یک فراخوانی سیستمی که فقط ۲ بایت کپی می‌شود چطور؟ آیا این عددها می‌توانند بهبود یابند؟ چقدر؟
-
-We know each page in user side has a virtual address and if we want to be aware of which physical address they are mapped to we should call pagedir_get_page() function for each process. Here we have a full page with size of 4096 bytes. In the worst case every byte of this full page has different virtual address then we need to call pagedir_get_page() 4096 times to find out what are the whole pages addresses.(Actually here I just mentioned the times we need to call pagedir_get_page() to get each `PTE`(page table entry) but in fact we also need to call another function to fetch `page directory` then using that we can get `page entries`, then this will add another function calls). and in the best case our full page is located in single page then we only need to call pagedir_get_page() once.(We assumed that each page has size of 4kb in our system). We can improve this numbers using some tricks like: `Have grater page sizes in our memory` or `Use better memory management scheme(Here we thought by default it is straight forward)` or `We can optimize our code` or maybe `Use hardware suppport`.
-and for amount of copied bytes in each syscall we can use `memcpy()` to copy larger scales from user side to kernel side, this works fine but has some side effects like latency and higher memory usage in each syscall.
-
 
 >پیاده‌سازی فراخوانی سیستمی `wait` را توضیح دهید و بگویید چگونه با پایان یافتن پردازه در ارتباط است.
 
