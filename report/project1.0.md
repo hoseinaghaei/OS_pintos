@@ -44,15 +44,15 @@
   
 ۴.
 
-    `grep -rnw 'lib/' -e '_start'`
+    grep -rnw 'lib/' -e '_start'
    
-<pre> <code>
+    ```
     lib/user/user.lds:3:ENTRY(_start) 
     lib/user/entry.c:4:void _start (int argc, char *argv[]);  
     lib/user/entry.c:7:_start (int argc, char *argv[])
-</code> </pre>
+    ```
 
-<pre> <code>
+    ```c
     #include <syscall.h>
 
     int main (int, char *[]);
@@ -63,7 +63,7 @@
     {
     exit (main (argc, argv));
     }
-</code> </pre>
+    ```
    
    ```c
 #include <syscall.h>
