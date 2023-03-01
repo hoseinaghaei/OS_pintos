@@ -6,7 +6,7 @@
 
 seyyed alireza ghazanfari alireza79.ghazanfari@gmail.com
 
-آرمین دلگسارماهر arminmaher@gmail.com
+Armin Delgosar Maher arminmaher@gmail.com
 
 AmirMahdi kuusheshi amk_amir82@yahoo.com 
 
@@ -64,7 +64,7 @@ static bool setup_stack(void **esp, int argc, char **argv);
 we set `argv[0]` before calling setup_stack, but it is also question how we process the arguments. we get a filename and after tokenize it, we set arguments reverse to the argv. in fact we init the argv[argc-1], then we init argv[argc-2] until we reach argv[1]. we set the argv[argc] NULL (somehow like personal hw1)
 we set the return address too, because when the stack pointer check all arguments and reached return address.
 
-this jobs will fill the stack, so we need to check if stack has empty space. we chacked thread struct and found a variable called `magic`. this variable checked if stack overflowed or not. we check magic ad stack pointer to find out if overflow occurred or not.
+this jobs will fill the stack, so we need to check if stack has empty space. we chacked thread struct and found a variable called `magic`. this variable checked if stack overflowed or not. also we set a maximum size of arguments, so if the filename be grather than our maximum size of arguments, then we can raise stack overflow and also we can ignore the command and do not execute it. 
 
 منطق طراحی
 -----------------
@@ -77,6 +77,8 @@ threads will work with this function. `strtok_r()` is thread safe and `strtok()`
 this will reduce the kernel complexity and increase its performence and efficienty. kernel would not handson parsing and checking arguments, it will only work with arguments, just this. kernel would be somehow generic.
 
 also if we do this in shell, it can interpret commands and we can have more complex and efficient command that help us better, and this complex commands would not any effect on kernel.
+
+shell would help kernel alot, because it can check if file exist and then execue it, it can handle the complexity and not press on kernel.
 
 فراخوانی‌های سیستمی
 ================
@@ -177,7 +179,9 @@ if we got an error we return error status (like -1) to user and then release all
 So the first part of question is about this point that the process that is running exec shouldn't be terminated before loading the program completely. Obviously the description of question tells us that we should convert this part of a code to an atomic code (action). The only technique which we learned for doing this is semaphore (until this moment of course).
 first of all i think we need to save thread's exit code in a struct which process has access to it such as `thread_status`.
 For handling exec syscall in kernel we should use `process_execute` function in process.c. what we want in this step?
+
 we wanna wait after thread creation in process until loading completion. In other side if we had a complete load flow we should not wait in that location. So these two sentences are like the definitions of semaphore. We define a semaphore for each `thread_status` call `exec_sem` and use sema_down exactly after thread creationg in `process_execute` and sema_up exactly after loading in `start_process` for sharing the result of thread's exit code with process we have to set thread's exit code in thread_status instance related to that thread and in `process_execute` should use this data for returning the suitable exit code. 
+
 ----------------
 
 > پردازه‌ی والد P و پردازه‌ی فرزند C را درنظر بگیرید. هنگامی که P فراخوانی `wait(C)` را اجرا می‌کند و C  هنوز خارج نشده است، توضیح دهید که چگونه همگام‌سازی مناسب را برای جلوگیری از ایجاد شرایط مسابقه (race condition) پیاده‌سازی کرده‌اید. وقتی که C از قبل خارج شده باشد چطور؟ در هر حالت چگونه از آزاد شدن تمامی منابع اطمینان حاصل می‌کنید؟ اگر P بدون منتظر ماندن، قبل از C خارج شود چطور؟ اگر بدون منتظر ماندن بعد از C خارج شود چطور؟ آیا حالت‌های خاصی وجود دارد؟
@@ -192,6 +196,8 @@ about special situations. yes of course we didn't handle multi threading so it's
 منطق طراحی
 -----------------
 > به چه دلیل روش دسترسی به حافظه سطح کاربر از داخل هسته را این‌گونه پیاده‌سازی کرده‌اید؟
+
+according to warmuح document, there are two ways to check and handle user access memory. we choose the first one because it is easier than way two to implememting and we are really lazy. in this way we just need to check a pointer and then handle the user access memory. altough the second way is faster beside its complexity.
 
 > طراحی شما برای توصیف‌کننده‌های فایل چه نقاط قوت و ضعفی دارد؟
 
@@ -269,7 +275,9 @@ behaviour:
   ```
   This is for identifying the inputs and outputs of assembly code. first `:` indicates outputs which is empty in this assembly code. Second `:` shows inputs that we have a constant value `"i" (SYS_EXIT)`. `SYS_EXIT` is a constant for calling the exit system call inside of kernel. The `"i"` constraint tells the compiler to generate code that loads the constant value into a register.
   but where is the problem?
+
   here when the assembly code want to push the input operand (SYS_EXIT constant) inside of stack your stack pointer is pointing to `0xc0000000` (PHYS_BASE which is defined in guide doc) so this data should be in this address and upper which is not accessable address space for user so we will face segmentation error and this program will fail with the message of its last code line.
+
 -------------
 سوالات نظرخواهی
 ==============
