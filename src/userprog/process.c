@@ -493,30 +493,6 @@ bool tokenize(char *path) {
     }
     return true;
 }
-//
-//bool
-//tokenize(char *cmd_line) {
-//    int i;
-//    char *c;
-//
-//    for (i = 0; i < MAX_ARGUMENT; ++i)
-//        argv[i] = NULL;  /* empty argv */
-//
-//    argc = 0;
-//    char *strtok_saveptr;
-//    c = strtok_r(cmd_line, " ", &strtok_saveptr);  /* Start tokenizer on the input */
-//    for (i = 0; c && (i < MAX_ARGUMENT); ++i) {
-//        argv[i] = c;
-//        argc++;
-//        c = strtok_r(NULL, " ", &strtok_saveptr);  /* scan for next token */
-//    }
-//
-//    /* Return false if we ran out of space on argv. */
-//    if (strtok_r(NULL, " ", &strtok_saveptr) != NULL)
-//        return false;
-//
-//    return true;
-//}
 
 /* Adds a mapping from user virtual address UPAGE to kernel
    virtual address KPAGE to the page table.
