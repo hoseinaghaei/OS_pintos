@@ -51,7 +51,9 @@ syscall_handler(struct intr_frame *f) {
     switch (args[0]) {
         case SYS_WRITE:
             syscall_write(f);
-
+            break;
+        case SYS_HALT:
+            shutdown_power_off();
             break;
     }
     if (args[0] == SYS_EXIT) {
