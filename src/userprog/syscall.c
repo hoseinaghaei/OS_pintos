@@ -16,17 +16,16 @@ void
 syscall_write(struct intr_frame *);
 
 static bool
-args_valid(uint32_t *args, int num_args) {
+does_user_access_to_memory(uint32_t *args, int args_size) {
     struct thread *t = thread_current();
 
-    /* argv and all argv[i]. Check pointer address and value
-       (should also be a user space ptr) */
-    int i;
-    for (i = 0; i < num_args + 1; i++) {
-        if (args == NULL || !(is_user_vaddr(args)) ||
-            pagedir_get_page(t->pagedir, args) == NULL)
-            return false;
+    // check if user access to the memory (user space)
 
+    while (args_size >= 0) {
+        if (args == NULL || !(is_user_vaddr(args)) || pagedir_get_page(t->pagedir, args) == NULL) {
+            return false;
+        }
+        args_size -= 1;
         args++;
     }
     return true;
@@ -36,6 +35,10 @@ static void
 syscall_handler(struct intr_frame *f) {
     uint32_t *args = ((uint32_t *) f->esp);
 
+    if (!does_user_access_to_memory(args, sizeof args)) {
+        printf("%s: exit(-1)\n", &thread_current()->name);
+        thread_exit();
+    }
     /*
      * The following print statement, if uncommented, will print out the syscall
      * number whenever a process enters a system call. You might find it useful
@@ -43,10 +46,6 @@ syscall_handler(struct intr_frame *f) {
      * include it in your final submission.
      */
 
-    if (!args_valid(args, 1)) {
-        printf("%s: exit(-1)\n", &thread_current()->name);
-        thread_exit();
-    }
 
     /* printf("System call number: %d\n", args[0]); */
     switch (args[0]) {
