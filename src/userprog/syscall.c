@@ -3,6 +3,7 @@
 #include <syscall-nr.h>
 #include "threads/interrupt.h"
 #include "threads/thread.h"
+#include "threads/vaddr.h"
 
 static void syscall_handler(struct intr_frame *);
 
@@ -14,6 +15,23 @@ syscall_init(void) {
 void
 syscall_write(struct intr_frame *);
 
+static bool
+args_valid(uint32_t *args, int num_args) {
+    struct thread *t = thread_current();
+
+    /* argv and all argv[i]. Check pointer address and value
+       (should also be a user space ptr) */
+    int i;
+    for (i = 0; i < num_args + 1; i++) {
+        if (args == NULL || !(is_user_vaddr(args)) ||
+            pagedir_get_page(t->pagedir, args) == NULL)
+            return false;
+
+        args++;
+    }
+    return true;
+}
+
 static void
 syscall_handler(struct intr_frame *f) {
     uint32_t *args = ((uint32_t *) f->esp);
@@ -24,6 +42,11 @@ syscall_handler(struct intr_frame *f) {
      * when debugging. It will cause tests to fail, however, so you should not
      * include it in your final submission.
      */
+
+    if (!args_valid(args, 1)) {
+        printf("%s: exit(-1)\n", &thread_current()->name);
+        thread_exit();
+    }
 
     /* printf("System call number: %d\n", args[0]); */
     switch (args[0]) {
