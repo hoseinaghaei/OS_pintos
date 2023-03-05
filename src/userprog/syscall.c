@@ -48,27 +48,34 @@ get_file_descriptor(struct file *file);
 //    return file;
 //}
 
-//int
-//get_file_descriptor(struct file *file)
-//{
-//    int fd = -1;
-//
-//    for (int i = 0; i < MAX_FILE_DESCRIPTOR_COUNT; i++) {
-//        if (open_files[i].file == NULL) {
-//            fd = i;
-//            break;
-//        }
-//    }
-//
-//    if (fd == -1) {
-//        return -1;
-//    }
-//
-//    open_files[fd].file = file;
-//    open_files[fd].file_id = fd;
-//
-//    return fd;
-//}
+int
+get_file_descriptor(struct file *file)
+{
+    struct thread *t = thread_current();
+    struct list *thread_fd_list = t->fd_list;
+
+    int fd = -1;
+
+    for (int i = 0; i < MAX_FILE_DESCRIPTOR_COUNT; i++) {
+        if (thread_fd_list[i].file == NULL) {
+            fd = i;
+            break;
+        }
+    }
+
+    if (fd == -1) {
+        return -1;
+    }
+
+    thread_fd_list[fd].file = file;
+    thread_fd_list[fd].file_id = fd;
+
+    if(fd != 0){
+        thread_fd_list[fd].prev = fd - 1;
+    }
+
+    return fd;
+}
 
 bool
 is_args_null(uint32_t *args, int args_size) {
