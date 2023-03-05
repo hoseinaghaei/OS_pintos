@@ -177,44 +177,44 @@ syscall_create(struct intr_frame *f, uint32_t *args) {
 }
 
 
-void
-syscall_read(struct intr_frame *f, uint32_t *args)
-{
-    int fd = *(int *) (f->esp + 4);
-    const void *buffer = *(const void **) (f->esp + 8);
-    unsigned size = *(unsigned *) (f->esp + 12);
-
-    if (!does_user_access_to_memory(buffer, size)) {
-        printf("%s: exit(-1)\n", &thread_current()->name);
-        thread_exit();
-    }
-
-    struct file *file = get_file_from_fd(fd);
-    if (file == NULL) {
-        f->eax = -1;
-        return;
-    }
-
-    f->eax = file_read(file, buffer, size);
-}
-
-void
-syscall_open(struct intr_frame *f, const char *file_name)
-{
-    const void *buffer = *(const void **) (f->esp + 8);
-    unsigned size = *(unsigned *) (f->esp + 12);
-
-    if (!does_user_access_to_memory(buffer, size)) {
-        printf("%s: exit(-1)\n", &thread_current()->name);
-        thread_exit();
-    }
-
-    struct file *file_ = filesys_open (file_name);
-
-    if (file_)
-    {
-        fid_t fid = new_file_descriptor(file_);
-        f->eax = fid;
-    }
-
-}
+//void
+//syscall_read(struct intr_frame *f, uint32_t *args)
+//{
+//    int fd = *(int *) (f->esp + 4);
+//    const void *buffer = *(const void **) (f->esp + 8);
+//    unsigned size = *(unsigned *) (f->esp + 12);
+//
+//    if (!does_user_access_to_memory(buffer, size)) {
+//        printf("%s: exit(-1)\n", &thread_current()->name);
+//        thread_exit();
+//    }
+//
+//    struct file *file = get_file_from_fd(fd);
+//    if (file == NULL) {
+//        f->eax = -1;
+//        return;
+//    }
+//
+//    f->eax = file_read(file, buffer, size);
+//}
+//
+//void
+//syscall_open(struct intr_frame *f, const char *file_name)
+//{
+//    const void *buffer = *(const void **) (f->esp + 8);
+//    unsigned size = *(unsigned *) (f->esp + 12);
+//
+//    if (!does_user_access_to_memory(buffer, size)) {
+//        printf("%s: exit(-1)\n", &thread_current()->name);
+//        thread_exit();
+//    }
+//
+//    struct file *file_ = filesys_open (file_name);
+//
+//    if (file_)
+//    {
+//        fid_t fid = new_file_descriptor(file_);
+//        f->eax = fid;
+//    }
+//
+//}
