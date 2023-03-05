@@ -20,6 +20,7 @@ enum thread_status
    You can redefine this to whatever type you like. */
 typedef int tid_t;
 #define TID_ERROR ((tid_t) -1)          /* Error value for tid_t. */
+#define MAX_FILE_DESCRIPTOR_COUNT 128
 
 /* Thread priorities. */
 #define PRI_MIN 0                       /* Lowest priority. */
@@ -91,7 +92,8 @@ struct thread
     uint8_t *stack;                     /* Saved stack pointer. */
     int priority;                       /* Priority. */
     struct list_elem allelem;           /* List element for all threads list. */
-
+    struct list file_descriptor_list[MAX_FILE_DESCRIPTOR_COUNT];
+    struct file *exec_file;
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
 
