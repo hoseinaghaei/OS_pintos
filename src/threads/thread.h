@@ -21,7 +21,6 @@ struct
 file_descriptor
 {
     struct file *file;
-    struct list_elem file_descriptor_element;
     fid_t file_id;
 };
 
@@ -101,7 +100,7 @@ struct thread
     uint8_t *stack;                     /* Saved stack pointer. */
     int priority;                       /* Priority. */
     struct list_elem allelem;           /* List element for all threads list. */
-    struct  file_descriptor_list[MAX_FILE_DESCRIPTOR_COUNT];
+    struct file_descriptor* file_descriptor_list[MAX_FILE_DESCRIPTOR_COUNT];
     struct file *exec_file;
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
