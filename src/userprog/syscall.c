@@ -5,15 +5,6 @@
 #include "threads/thread.h"
 #include "threads/vaddr.h"
 
-typedef int fid_t;
-struct
-file_descriptor
-{
-    struct file *file;
-    struct list_elem file_descriptor_element;
-    fid_t file_id;
-};
-
 static void syscall_handler(struct intr_frame *);
 
 void
@@ -30,6 +21,9 @@ syscall_read(struct intr_frame *, uint32_t *);
 void
 syscall_create(struct intr_frame *, uint32_t *);
 
+void
+syscall_open(struct intr_frame *, const char *);
+
 int
 get_file_descriptor(struct file *file);
 
@@ -37,7 +31,7 @@ get_file_descriptor(struct file *file);
 struct file *get_file_from_fd(int fd)
 {
     struct thread *t = thread_current();
-    struct list *thread_fd_list = t->fd_list;
+    struct file_descriptor *thread_fd_list = t->file_descriptor_list;
     struct file *file = NULL;
 
     for (int i = 0; i < MAX_FILE_DESCRIPTOR_COUNT ; i++) {
@@ -51,14 +45,14 @@ struct file *get_file_from_fd(int fd)
 }
 
 int
-get_file_descriptor(struct file *file)
+new_file_descriptor(struct file *file)
 {
     struct thread *t = thread_current();
-    struct list *thread_fd_list = t->fd_list;
+    struct file_descriptor *thread_fd_list = t->file_descriptor_list;
 
     int fd = -1;
 
-    for (int i = 0; i < MAX_FILE_DESCRIPTOR_COUNT; i++) {
+    for (int i = 3; i < MAX_FILE_DESCRIPTOR_COUNT; i++) {
         if (thread_fd_list[i].file == NULL) {
             fd = i;
             break;
@@ -71,10 +65,6 @@ get_file_descriptor(struct file *file)
 
     thread_fd_list[fd].file = file;
     thread_fd_list[fd].file_id = fd;
-
-    if(fd != 0){
-        thread_fd_list[fd].prev = fd - 1;
-    }
 
     return fd;
 }
@@ -187,23 +177,44 @@ syscall_create(struct intr_frame *f, uint32_t *args) {
 }
 
 
-//void
-//syscall_read(struct intr_frame *f, uint32_t *args)
-//{
-//    int fd = *(int *) (f->esp + 4);
-//    const void *buffer = *(const void **) (f->esp + 8);
-//    unsigned size = *(unsigned *) (f->esp + 12);
-//
-//    if (!does_user_access_to_memory(buffer, size)) {
-//        printf("%s: exit(-1)\n", &thread_current()->name);
-//        thread_exit();
-//    }
-//
-//    struct file *file = get_file_from_fd(fd);
-//    if (file == NULL) {
-//        f->eax = -1;
-//        return;
-//    }
-//
-//    f->eax = file_read(file, buffer, size);
-//}
+void
+syscall_read(struct intr_frame *f, uint32_t *args)
+{
+    int fd = *(int *) (f->esp + 4);
+    const void *buffer = *(const void **) (f->esp + 8);
+    unsigned size = *(unsigned *) (f->esp + 12);
+
+    if (!does_user_access_to_memory(buffer, size)) {
+        printf("%s: exit(-1)\n", &thread_current()->name);
+        thread_exit();
+    }
+
+    struct file *file = get_file_from_fd(fd);
+    if (file == NULL) {
+        f->eax = -1;
+        return;
+    }
+
+    f->eax = file_read(file, buffer, size);
+}
+
+void
+syscall_open(struct intr_frame *f, const char *file_name)
+{
+    const void *buffer = *(const void **) (f->esp + 8);
+    unsigned size = *(unsigned *) (f->esp + 12);
+
+    if (!does_user_access_to_memory(buffer, size)) {
+        printf("%s: exit(-1)\n", &thread_current()->name);
+        thread_exit();
+    }
+
+    struct file *file_ = filesys_open (file_name);
+
+    if (file_)
+    {
+        fid_t fid = new_file_descriptor(file_);
+        f->eax = fid;
+    }
+
+}
