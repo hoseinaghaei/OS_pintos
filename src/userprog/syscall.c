@@ -15,21 +15,53 @@ syscall_init(void) {
 void
 syscall_write(struct intr_frame *);
 
+void
+syscall_create(struct intr_frame *, uint32_t *);
+
+
+bool
+is_args_null(uint32_t *args, int args_size) {
+    int i = 0;
+    while (i < args_size) {
+        if (args[i] == NULL) {
+            return true;
+        }
+        i++;
+    }
+    return false;
+}
+
+bool
+is_user_access_memory(uint32_t *args, int args_size) {
+    int i = 0;
+    while (i < args_size) {
+        if (!(is_user_vaddr(args))) {
+            return false;
+        }
+        i++;
+        args++;
+    }
+    return true;
+}
+
+
 static bool
 does_user_access_to_memory(uint32_t *args, int args_size) {
     struct thread *t = thread_current();
 
     // check if user access to the memory (user space)
 
-    while (args_size >= 0) {
+    int i = 0;
+    while (i < args_size) {
         if (args == NULL || !(is_user_vaddr(args)) || pagedir_get_page(t->pagedir, args) == NULL) {
             return false;
         }
-        args_size -= 1;
+        i += 1;
         args++;
     }
     return true;
 }
+
 
 static void
 syscall_handler(struct intr_frame *f) {
@@ -55,6 +87,11 @@ syscall_handler(struct intr_frame *f) {
         case SYS_HALT:
             shutdown_power_off();
             break;
+        case SYS_CREATE:
+            syscall_create(f, args);
+            break;
+        default:
+            break;
     }
     if (args[0] == SYS_EXIT) {
         f->eax = args[1];
@@ -63,7 +100,8 @@ syscall_handler(struct intr_frame *f) {
     }
 }
 
-void syscall_write(struct intr_frame *f) {
+void
+syscall_write(struct intr_frame *f) {
     int fd = *(int *) (f->esp + 4);
     const void *buffer = *(const void **) (f->esp + 8);
     unsigned size = *(unsigned *) (f->esp + 12);
@@ -73,4 +111,14 @@ void syscall_write(struct intr_frame *f) {
         putbuf(buffer, size);
         return;
     }
+}
+
+void
+syscall_create(struct intr_frame *f, uint32_t *args) {
+
+    if (!does_user_access_to_memory((void *) args[1], 1)) {
+        printf("%s: exit(-1)\n", &thread_current()->name);
+        thread_exit();
+    }
+    f->eax = filesys_create((const char *) args[1], args[2]);
 }
