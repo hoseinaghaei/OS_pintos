@@ -90,6 +90,12 @@ syscall_handler(struct intr_frame *f) {
         case SYS_CREATE:
             syscall_create(f, args);
             break;
+        case SYS_OPEN:
+            syscall_open(f, args);
+            break;
+        case SYS_PRACTICE:
+            f->eax = args[1] + 1;
+            break;
         default:
             break;
     }
@@ -121,4 +127,14 @@ syscall_create(struct intr_frame *f, uint32_t *args) {
         thread_exit();
     }
     f->eax = filesys_create((const char *) args[1], args[2]);
+}
+
+void
+syscall_open(struct intr_frame *f, uint32_t *args) {
+    if (!does_user_access_to_memory(args[1], 1)) {
+        printf("%s: exit(-1)\n", &thread_current()->name);
+        thread_exit();
+    }
+
+    struct thread *t = thread_current();
 }
