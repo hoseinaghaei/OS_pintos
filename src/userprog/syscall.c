@@ -5,6 +5,15 @@
 #include "threads/thread.h"
 #include "threads/vaddr.h"
 
+typedef int fid_t;
+struct
+file_descriptor
+{
+    struct file *file;
+    struct list_elem file_descriptor_element;
+    fid_t file_id;
+};
+
 static void syscall_handler(struct intr_frame *);
 
 void
@@ -16,8 +25,50 @@ void
 syscall_write(struct intr_frame *);
 
 void
+syscall_read(struct intr_frame *, uint32_t *);
+
+void
 syscall_create(struct intr_frame *, uint32_t *);
 
+int
+get_file_descriptor(struct file *file);
+
+
+//struct file *get_file_from_fd(int fd)
+//{
+//    struct file *file = NULL;
+//
+//    for (int i = 0; i < MAX_FILE_DESCRIPTOR_COUNT ; i++) {
+//        if (open_files[i].file != NULL && open_files[i].file_id == fd) {
+//            file = open_files[i].file;
+//            break;
+//        }
+//    }
+//
+//    return file;
+//}
+
+//int
+//get_file_descriptor(struct file *file)
+//{
+//    int fd = -1;
+//
+//    for (int i = 0; i < MAX_FILE_DESCRIPTOR_COUNT; i++) {
+//        if (open_files[i].file == NULL) {
+//            fd = i;
+//            break;
+//        }
+//    }
+//
+//    if (fd == -1) {
+//        return -1;
+//    }
+//
+//    open_files[fd].file = file;
+//    open_files[fd].file_id = fd;
+//
+//    return fd;
+//}
 
 bool
 is_args_null(uint32_t *args, int args_size) {
@@ -90,6 +141,9 @@ syscall_handler(struct intr_frame *f) {
         case SYS_CREATE:
             syscall_create(f, args);
             break;
+        case SYS_READ:
+            syscall_read(f, args);
+            break;
         default:
             break;
     }
@@ -122,3 +176,25 @@ syscall_create(struct intr_frame *f, uint32_t *args) {
     }
     f->eax = filesys_create((const char *) args[1], args[2]);
 }
+
+
+//void
+//syscall_read(struct intr_frame *f, uint32_t *args)
+//{
+//    int fd = *(int *) (f->esp + 4);
+//    const void *buffer = *(const void **) (f->esp + 8);
+//    unsigned size = *(unsigned *) (f->esp + 12);
+//
+//    if (!does_user_access_to_memory(buffer, size)) {
+//        printf("%s: exit(-1)\n", &thread_current()->name);
+//        thread_exit();
+//    }
+//
+//    struct file *file = get_file_from_fd(fd);
+//    if (file == NULL) {
+//        f->eax = -1;
+//        return;
+//    }
+//
+//    f->eax = file_read(file, buffer, size);
+//}
