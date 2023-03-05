@@ -34,19 +34,21 @@ int
 get_file_descriptor(struct file *file);
 
 
-//struct file *get_file_from_fd(int fd)
-//{
-//    struct file *file = NULL;
-//
-//    for (int i = 0; i < MAX_FILE_DESCRIPTOR_COUNT ; i++) {
-//        if (open_files[i].file != NULL && open_files[i].file_id == fd) {
-//            file = open_files[i].file;
-//            break;
-//        }
-//    }
-//
-//    return file;
-//}
+struct file *get_file_from_fd(int fd)
+{
+    struct thread *t = thread_current();
+    struct list *thread_fd_list = t->fd_list;
+    struct file *file = NULL;
+
+    for (int i = 0; i < MAX_FILE_DESCRIPTOR_COUNT ; i++) {
+        if (thread_fd_list[i].file != NULL && thread_fd_list[i].file_id == fd) {
+            file = thread_fd_list[i].file;
+            break;
+        }
+    }
+
+    return file;
+}
 
 int
 get_file_descriptor(struct file *file)
