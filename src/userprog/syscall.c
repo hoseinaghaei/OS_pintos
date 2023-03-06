@@ -24,6 +24,8 @@ syscall_create(struct intr_frame *, uint32_t *);
 void
 syscall_open(struct intr_frame *f, uint32_t *args);
 
+void
+syscall_close(struct intr_frame *, uint32_t *);
 //int
 //get_file_descriptor(struct file *file);
 //
@@ -147,6 +149,9 @@ syscall_handler(struct intr_frame *f) {
         case SYS_PRACTICE:
             f->eax = args[1] + 1;
             break;
+        case SYS_CLOSE:
+//            syscall_close(f, args);
+            break;
         default:
             break;
     }
@@ -267,4 +272,22 @@ syscall_open(struct intr_frame *f, uint32_t *args) {
         if (t->t_fds[t_fd_id] == NULL)
             f->eax = -1;
     }
+}
+
+void
+syscall_close(struct intr_frame *f, uint32_t *args) {
+    if (!does_user_access_to_memory(args[1], 1)) {
+        printf("%s: exit(-1)\n", &thread_current()->name);
+        thread_exit();
+    }
+
+    /* Fail when closing a wrong fd. */
+    if (args[1] < 0 || args[1] > 128 || args[1] < 3) {
+        printf("%s: exit(-1)\n", &thread_current()->name);
+        thread_exit();
+    }
+
+    struct thread *t = thread_current();
+    file_close(t->t_fds[args[1]]);
+    t->t_fds[args[1]] = NULL;
 }
