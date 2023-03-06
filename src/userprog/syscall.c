@@ -13,7 +13,7 @@ syscall_init(void) {
 }
 
 void
-syscall_write(struct intr_frame *);
+syscall_write(struct intr_frame *, uint32_t *args);
 
 void
 syscall_read(struct intr_frame *, uint32_t *);
@@ -120,7 +120,7 @@ syscall_handler(struct intr_frame *f) {
     /* printf("System call number: %d\n", args[0]); */
     switch (args[0]) {
         case SYS_WRITE:
-            syscall_write(f);
+            syscall_write(f, args);
             break;
         case SYS_HALT:
             shutdown_power_off();
@@ -148,16 +148,35 @@ syscall_handler(struct intr_frame *f) {
 }
 
 void
-syscall_write(struct intr_frame *f) {
-    int fd = *(int *) (f->esp + 4);
-    const void *buffer = *(const void **) (f->esp + 8);
-    unsigned size = *(unsigned *) (f->esp + 12);
+syscall_write(struct intr_frame *f, uint32_t *args) {
+    if (!does_user_access_to_memory(args[2], 1)) {
+        printf("%s: exit(-1)\n", &thread_current()->name);
+        thread_exit();
+    }
+    int fd = args[1];
+    char *string = args[2];
+    unsigned size = args[3];
 
     if (fd == STDOUT_FILENO) {
         /* Writing to console. */
-        putbuf(buffer, size);
+        putbuf(string, size);
+        f->eax = size;
         return;
     }
+
+    if (fd > 128 || fd < 0) {
+        printf("%s: exit(-1)\n", &thread_current()->name);
+        thread_exit();
+    }
+    struct thread *t = thread_current();
+    struct file *file = t->t_fds[fd];
+    if (file != NULL) {
+        f->eax = file_write(file, string, size);
+    } else {
+        printf("%s: exit(-1)\n", &thread_current()->name);
+        thread_exit();
+    }
+
 }
 
 void
