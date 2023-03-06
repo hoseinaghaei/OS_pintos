@@ -28,20 +28,10 @@ syscall_open(struct intr_frame *f, uint32_t *args);
 //get_file_descriptor(struct file *file);
 //
 //
-//struct file *get_file_from_fd(int fd) {
-//    struct thread *t = thread_current();
-//    struct file_descriptor *thread_fd_list = t->file_descriptor_list;
-//    struct file *file = NULL;
-//
-//    for (int i = 0; i < MAX_FILE_DESCRIPTOR_COUNT; i++) {
-//        if (thread_fd_list[i].file != NULL && thread_fd_list[i].file_id == fd) {
-//            file = thread_fd_list[i].file;
-//            break;
-//        }
-//    }
-//
-//    return file;
-//}
+struct file *get_file_from_fd(int fd) {
+    struct thread *t = thread_current();
+    return t->t_fds[fd];
+}
 
 //int
 //new_file_descriptor(struct file *file) {
@@ -139,7 +129,7 @@ syscall_handler(struct intr_frame *f) {
             syscall_create(f, args);
             break;
         case SYS_READ:
-//            syscall_read(f, args);
+            syscall_read(f, args);
             break;
         case SYS_OPEN:
             syscall_open(f, args);
@@ -181,26 +171,26 @@ syscall_create(struct intr_frame *f, uint32_t *args) {
 }
 
 
-//void
-//syscall_read(struct intr_frame *f, uint32_t *args)
-//{
-//    int fd = *(int *) (f->esp + 4);
-//    const void *buffer = *(const void **) (f->esp + 8);
-//    unsigned size = *(unsigned *) (f->esp + 12);
-//
-//    if (!does_user_access_to_memory(buffer, size)) {
-//        printf("%s: exit(-1)\n", &thread_current()->name);
-//        thread_exit();
-//    }
-//
-//    struct file *file = get_file_from_fd(fd);
-//    if (file == NULL) {
-//        f->eax = -1;
-//        return;
-//    }
-//
-//    f->eax = file_read(file, buffer, size);
-//}
+void
+syscall_read(struct intr_frame *f, uint32_t *args)
+{
+    int fd = *(int *) args[1];
+    const void *buffer = *(const void **) args[2];
+    unsigned size = *(unsigned *) args[3];
+
+    if (!does_user_access_to_memory(buffer, size)) {
+        printf("%s: exit(-1)\n", &thread_current()->name);
+        thread_exit();
+    }
+
+    struct file *file = get_file_from_fd(fd);
+    if (file == NULL) {
+        f->eax = -1;
+        return;
+    }
+
+    f->eax = file_read(file, buffer, size);
+}
 //
 //void
 //syscall_open(struct intr_frame *f, const char *file_name)
@@ -225,7 +215,7 @@ syscall_create(struct intr_frame *f, uint32_t *args) {
 
 int
 get_thread_available_fd(struct thread *t) {
-    for (int i = 3; i < 128; i++) {
+    for (int i = 3; i < MAX_FILE_DESCRIPTOR_COUNT; i++) {
         if (t->t_fds[i] == NULL) {
             return i;
         }
