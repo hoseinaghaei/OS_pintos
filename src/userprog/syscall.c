@@ -13,7 +13,7 @@ syscall_init(void) {
 }
 
 void
-syscall_write(struct intr_frame *);
+syscall_write(struct intr_frame *, uint32_t *args);
 
 void
 syscall_read(struct intr_frame *, uint32_t *);
@@ -23,49 +23,6 @@ syscall_create(struct intr_frame *, uint32_t *);
 
 void
 syscall_open(struct intr_frame *f, uint32_t *args);
-
-//int
-//get_file_descriptor(struct file *file);
-//
-//
-//struct file *get_file_from_fd(int fd) {
-//    struct thread *t = thread_current();
-//    struct file_descriptor *thread_fd_list = t->file_descriptor_list;
-//    struct file *file = NULL;
-//
-//    for (int i = 0; i < MAX_FILE_DESCRIPTOR_COUNT; i++) {
-//        if (thread_fd_list[i].file != NULL && thread_fd_list[i].file_id == fd) {
-//            file = thread_fd_list[i].file;
-//            break;
-//        }
-//    }
-//
-//    return file;
-//}
-
-//int
-//new_file_descriptor(struct file *file) {
-//    struct thread *t = thread_current();
-//    struct file_descriptor *thread_fd_list = t->file_descriptor_list;
-//
-//    int fd = -1;
-//
-//    for (int i = 3; i < MAX_FILE_DESCRIPTOR_COUNT; i++) {
-//        if (thread_fd_list[i].file == NULL) {
-//            fd = i;
-//            break;
-//        }
-//    }
-//
-//    if (fd == -1) {
-//        return -1;
-//    }
-//
-//    thread_fd_list[fd].file = file;
-//    thread_fd_list[fd].file_id = fd;
-//
-//    return fd;
-//}
 
 bool
 is_args_null(uint32_t *args, int args_size) {
@@ -130,7 +87,7 @@ syscall_handler(struct intr_frame *f) {
     /* printf("System call number: %d\n", args[0]); */
     switch (args[0]) {
         case SYS_WRITE:
-            syscall_write(f);
+            syscall_write(f, args);
             break;
         case SYS_HALT:
             shutdown_power_off();
@@ -158,16 +115,35 @@ syscall_handler(struct intr_frame *f) {
 }
 
 void
-syscall_write(struct intr_frame *f) {
-    int fd = *(int *) (f->esp + 4);
-    const void *buffer = *(const void **) (f->esp + 8);
-    unsigned size = *(unsigned *) (f->esp + 12);
+syscall_write(struct intr_frame *f, uint32_t *args) {
+    if (!does_user_access_to_memory(args[2], 1)) {
+        printf("%s: exit(-1)\n", &thread_current()->name);
+        thread_exit();
+    }
+    int fd = args[1];
+    char *string = args[2];
+    unsigned size = args[3];
 
     if (fd == STDOUT_FILENO) {
         /* Writing to console. */
-        putbuf(buffer, size);
+        putbuf(string, size);
+        f->eax = size;
         return;
     }
+
+    if (fd > 128 || fd < 0) {
+        printf("%s: exit(-1)\n", &thread_current()->name);
+        thread_exit();
+    }
+    struct thread *t = thread_current();
+    struct file *file = t->t_fds[fd];
+    if (file != NULL) {
+        f->eax = file_write(file, string, size);
+    } else {
+        printf("%s: exit(-1)\n", &thread_current()->name);
+        thread_exit();
+    }
+
 }
 
 void
@@ -179,49 +155,6 @@ syscall_create(struct intr_frame *f, uint32_t *args) {
     }
     f->eax = filesys_create((const char *) args[1], args[2]);
 }
-
-
-//void
-//syscall_read(struct intr_frame *f, uint32_t *args)
-//{
-//    int fd = *(int *) (f->esp + 4);
-//    const void *buffer = *(const void **) (f->esp + 8);
-//    unsigned size = *(unsigned *) (f->esp + 12);
-//
-//    if (!does_user_access_to_memory(buffer, size)) {
-//        printf("%s: exit(-1)\n", &thread_current()->name);
-//        thread_exit();
-//    }
-//
-//    struct file *file = get_file_from_fd(fd);
-//    if (file == NULL) {
-//        f->eax = -1;
-//        return;
-//    }
-//
-//    f->eax = file_read(file, buffer, size);
-//}
-//
-//void
-//syscall_open(struct intr_frame *f, const char *file_name)
-//{
-//    const void *buffer = *(const void **) (f->esp + 8);
-//    unsigned size = *(unsigned *) (f->esp + 12);
-//
-//    if (!does_user_access_to_memory(buffer, size)) {
-//        printf("%s: exit(-1)\n", &thread_current()->name);
-//        thread_exit();
-//    }
-//
-//    struct file *file_ = filesys_open (file_name);
-//
-//    if (file_)
-//    {
-//        fid_t fid = new_file_descriptor(file_);
-//        f->eax = fid;
-//    }
-//
-//}
 
 int
 get_thread_available_fd(struct thread *t) {
