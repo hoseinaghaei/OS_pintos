@@ -1,4 +1,5 @@
 #include "userprog/syscall.h"
+#include "userprog/process.h"
 #include <stdio.h>
 #include <syscall-nr.h>
 #include "threads/interrupt.h"
@@ -26,6 +27,13 @@ syscall_open(struct intr_frame *f, uint32_t *args);
 
 void
 syscall_close(struct intr_frame *, uint32_t *);
+
+void
+syscall_exec(struct intr_frame *, uint32_t args[]);
+
+void
+syscall_wait(struct intr_frame *, uint32_t args[]);
+
 //int
 //get_file_descriptor(struct file *file);
 //
@@ -112,6 +120,21 @@ does_user_access_to_memory(uint32_t *args, int args_size) {
     return true;
 }
 
+void
+syscall_exec (struct intr_frame *, uint32_t args[])
+{
+    char *file_name = args[1];
+    intr_frame->eax = process_execute(file_name);  
+    return;
+}
+
+void
+syscall_wait (struct intr_frame *, uint32_t args[])
+{
+    int pid = (int) args[1];
+    intr_frame->eax = process_wait(pid);   
+    return;
+}
 
 static void
 syscall_handler(struct intr_frame *f) {
@@ -151,6 +174,12 @@ syscall_handler(struct intr_frame *f) {
             break;
         case SYS_CLOSE:
 //            syscall_close(f, args);
+            break;
+        case SYS_EXEC:
+            syscall_exec(f, args);
+            break;
+        case SYS_WAIT:
+            syscall_wait(f, args);
             break;
         default:
             break;
