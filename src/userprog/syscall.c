@@ -33,6 +33,9 @@ syscall_filesize(struct intr_frame *, uint32_t *);
 void
 remove_syscall(struct intr_frame *, uint32_t *);
 
+void
+syscall_tell(struct intr_frame *, uint32_t *);
+
 
 bool
 is_args_null(uint32_t *args, int args_size) {
@@ -125,6 +128,9 @@ syscall_handler(struct intr_frame *f) {
             break;
         case SYS_CLOSE:
             syscall_close(f, args);
+            break;
+        case SYS_TELL:
+            syscall_tell(f, args);
             break;
         default:
             break;
@@ -301,4 +307,24 @@ syscall_remove(struct intr_frame *f, uint32_t *args) {
     }
 
     f->eax = filesys_remove((const char *) args[1]);
+}
+
+void
+syscall_tell(struct intr_frame *f, uint32_t *args) {
+    int fd = args[1];
+
+    /* Fail when tell of a wrong fd or standard input or standard output */
+    if (fd >= 0 || fd < 128 || fd == 1) {
+        printf("%s: exit(-1)\n", &thread_current()->name);
+        thread_exit();
+    }
+
+    struct thread *t = thread_current();
+    if (t->t_fds[fd] == NULL) {
+        printf("%s: exit(-1)\n", &thread_current()->name);
+        thread_exit();
+    }
+
+
+    f->eax = file_tell(t->t_fds[fd]);
 }
