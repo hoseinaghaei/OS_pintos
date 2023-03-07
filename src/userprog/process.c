@@ -444,7 +444,8 @@ setup_stack(void **esp) {
     return success;
 }
 
-void push_args_to_stack(void **esp) {
+static void
+push_args_to_stack(void **esp) {
     // push argv onto the stack
     for (int i = argc - 1; i >= 0; i--) {
         size_t len = strlen(argv[i]) + 1; // include null terminator
@@ -454,30 +455,30 @@ void push_args_to_stack(void **esp) {
     }
 
     // align to word boundary
-    *esp = (void *) ((uintptr_t) * esp & ~(uintptr_t) 3);
+    const int align_size = ((size_t) (*esp) - ((argc + 3) * 4)) % 16;
+    *esp -= align_size;
+//    memset(*esp, 0, align_size);
 
-    // push null sentinel for argv
+    // push argv[argc]
     *esp -= 4;
-    *(uint32_t * ) * esp = 0;
+    memset(*esp, 0x00, 4);
 
-    // push pointers to argv onto the stack
-    for (int i = argc - 1; i >= 0; i--) {
-        *esp -= 4;
-        *(char **) *esp = argv[i];
-    }
-
-    // push pointer to argv onto the stack
+    // push argv
+    *esp -= argc * 4;
+    memcpy(*esp, argv, argc * 4);
     *esp -= 4;
-    *(char **) *esp = *esp + 4;
+    *((size_t *) *esp) = (size_t) (*esp + 4);
 
-    // push argc onto the stack
+    // push argc
     *esp -= 4;
-    *((int *) *esp) = argc;
-    // for return address
+    *((size_t *) *esp) = argc;
+
+    // push fake return address
     *esp -= 4;
 }
 
-bool tokenize(char *path) {
+bool
+tokenize(char *path) {
     for (int i = 0; i < MAX_ARGUMENT; i++) {
         argv[i] = NULL;
     }

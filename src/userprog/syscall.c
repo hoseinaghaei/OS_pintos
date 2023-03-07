@@ -26,48 +26,9 @@ syscall_open(struct intr_frame *f, uint32_t *args);
 
 void
 syscall_close(struct intr_frame *, uint32_t *);
-//int
-//get_file_descriptor(struct file *file);
-//
-//
-//struct file *get_file_from_fd(int fd) {
-//    struct thread *t = thread_current();
-//    struct file_descriptor *thread_fd_list = t->file_descriptor_list;
-//    struct file *file = NULL;
-//
-//    for (int i = 0; i < MAX_FILE_DESCRIPTOR_COUNT; i++) {
-//        if (thread_fd_list[i].file != NULL && thread_fd_list[i].file_id == fd) {
-//            file = thread_fd_list[i].file;
-//            break;
-//        }
-//    }
-//
-//    return file;
-//}
 
-//int
-//new_file_descriptor(struct file *file) {
-//    struct thread *t = thread_current();
-//    struct file_descriptor *thread_fd_list = t->file_descriptor_list;
-//
-//    int fd = -1;
-//
-//    for (int i = 3; i < MAX_FILE_DESCRIPTOR_COUNT; i++) {
-//        if (thread_fd_list[i].file == NULL) {
-//            fd = i;
-//            break;
-//        }
-//    }
-//
-//    if (fd == -1) {
-//        return -1;
-//    }
-//
-//    thread_fd_list[fd].file = file;
-//    thread_fd_list[fd].file_id = fd;
-//
-//    return fd;
-//}
+void
+syscall_filesize(struct intr_frame *, uint32_t *);
 
 bool
 is_args_null(uint32_t *args, int args_size) {
@@ -131,6 +92,12 @@ syscall_handler(struct intr_frame *f) {
 
     /* printf("System call number: %d\n", args[0]); */
     switch (args[0]) {
+        case SYS_SEEK:
+            syscall_seek(f, args);
+            break;
+        case SYS_FILESIZE:
+            syscall_filesize(f, args);
+            break;
         case SYS_WRITE:
             syscall_write(f, args);
             break;
@@ -150,7 +117,7 @@ syscall_handler(struct intr_frame *f) {
             f->eax = args[1] + 1;
             break;
         case SYS_CLOSE:
-//            syscall_close(f, args);
+            syscall_close(f, args);
             break;
         default:
             break;
@@ -276,7 +243,7 @@ syscall_open(struct intr_frame *f, uint32_t *args) {
 
 void
 syscall_close(struct intr_frame *f, uint32_t *args) {
-    if (!does_user_access_to_memory(args[1], 1)) {
+    if (!does_user_access_to_memory(args[2], 1)) {
         printf("%s: exit(-1)\n", &thread_current()->name);
         thread_exit();
     }
@@ -290,4 +257,56 @@ syscall_close(struct intr_frame *f, uint32_t *args) {
     struct thread *t = thread_current();
     file_close(t->t_fds[args[1]]);
     t->t_fds[args[1]] = NULL;
+}
+
+void
+syscall_seek(struct intr_frame *f, uint32_t *args) {
+//          WTF IS THIS SHIT? EXITS IF UNCOMMENTED
+//    if (!does_user_access_to_memory(args[2], 1)) {
+//        printf("%s: exit(-1)\n", &thread_current()->name);
+//        thread_exit();
+//    }
+
+    int fd = (int) args[1];
+
+    if (fd <= 0 || fd > 128 || fd == 1) {
+        printf("%s: exit(-1)\n", &thread_current()->name);
+        thread_exit();
+    }
+
+    struct thread *t = thread_current();
+    if (t->t_fds[fd] == NULL) {
+        printf("%s: exit(-1)\n", &thread_current()->name);
+        thread_exit();
+    }
+
+    int length = (int) args[2];
+    if (length < 0) {
+        printf( "%d lenght", length);
+        printf("%s: exit(-1)\n", &thread_current()->name);
+        thread_exit();
+    }
+
+    f->eax = file_seek(t->t_fds[fd], length);
+}
+
+void
+syscall_filesize(struct intr_frame *f, uint32_t *args) {
+    if (!does_user_access_to_memory(args[2], 1)) {
+        printf("%s: exit(-1)\n", &thread_current()->name);
+        thread_exit();
+    }
+
+    int fd = (int) args[1];
+
+    if (fd <= 0 || fd > 128 || fd == 1) {
+        printf("%s: exit(-1)\n", &thread_current()->name);
+        thread_exit();
+    }
+    struct thread *t = thread_current();
+    if (t->t_fds[fd] == NULL) {
+        printf("%s: exit(-1)\n", &thread_current()->name);
+        thread_exit();
+    }
+    f->eax = file_length(t->t_fds[fd]);
 }
