@@ -30,6 +30,10 @@ syscall_close(struct intr_frame *, uint32_t *);
 void
 syscall_filesize(struct intr_frame *, uint32_t *);
 
+void
+remove_syscall(struct intr_frame *, uint32_t *);
+
+
 bool
 is_args_null(uint32_t *args, int args_size) {
     int i = 0;
@@ -116,6 +120,9 @@ syscall_handler(struct intr_frame *f) {
         case SYS_PRACTICE:
             f->eax = args[1] + 1;
             break;
+        case SYS_REMOVE:
+            syscall_remove(f, args);
+            break;
         case SYS_CLOSE:
             syscall_close(f, args);
             break;
@@ -194,25 +201,6 @@ syscall_read(struct intr_frame *f, uint32_t *args) {
         thread_exit();
     }
     f->eax = file_read(file, string, size);
-
-
-
-//    int fd = args[1];
-//    const void *buffer = *(const void **) args[2];
-//    unsigned size = *(unsigned *) args[3];
-//
-//    if (!does_user_access_to_memory(buffer, size)) {
-//        printf("%s: exit(-1)\n", &thread_current()->name);
-//        thread_exit();
-//    }
-//
-//    struct file *file = get_file_from_fd(fd);
-//    if (file == NULL) {
-//        f->eax = -1;
-//        return;
-//    }
-//
-//    f->eax = file_read(file, buffer, size);
 }
 
 int
@@ -261,12 +249,6 @@ syscall_close(struct intr_frame *f, uint32_t *args) {
 
 void
 syscall_seek(struct intr_frame *f, uint32_t *args) {
-//          WTF IS THIS SHIT? EXITS IF UNCOMMENTED
-//    if (!does_user_access_to_memory(args[2], 1)) {
-//        printf("%s: exit(-1)\n", &thread_current()->name);
-//        thread_exit();
-//    }
-
     int fd = (int) args[1];
 
     if (fd <= 0 || fd > 128 || fd == 1) {
@@ -282,7 +264,7 @@ syscall_seek(struct intr_frame *f, uint32_t *args) {
 
     int length = (int) args[2];
     if (length < 0) {
-        printf( "%d lenght", length);
+        printf("%d lenght", length);
         printf("%s: exit(-1)\n", &thread_current()->name);
         thread_exit();
     }
@@ -309,4 +291,14 @@ syscall_filesize(struct intr_frame *f, uint32_t *args) {
         thread_exit();
     }
     f->eax = file_length(t->t_fds[fd]);
+}
+
+void
+syscall_remove(struct intr_frame *f, uint32_t *args) {
+    if (!does_user_access_to_memory(args[1], 1)) {
+        printf("%s: exit(-1)\n", &thread_current()->name);
+        thread_exit();
+    }
+
+    f->eax = filesys_remove((const char *) args[1]);
 }
