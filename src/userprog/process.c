@@ -36,13 +36,21 @@ static bool tokenize(char *);
 
 static void push_args_to_stack(void **esp);
 
-struct process_status* find_child_thread (int thread_id)
+static struct process_status* find_child_thread(int);
+
+void finish_thread(struct process_status*, bool);
+
+void finish_process(struct process_status*);
+
+struct process_status* find_child_thread (int child_tid)
     {
-        struct thread *cur = current_thread();
+        struct thread *cur = thread_current();
+        struct process_status *child = NULL;
+        struct list_elem *e = NULL;
         for (e = list_begin (&(cur->children)); e != list_end (&(cur->children)); e = list_next (e))
             {
-            child = list_entry (e, struct child_parent_status, elem);
-            if (child->pid == (pid_t) child_tid)
+            child = list_entry (e, struct process_status, elem);
+            if (child->pid == (tid_t) child_tid)
                 break;
             
             child = NULL;
@@ -59,10 +67,11 @@ tid_t process_execute(const char *file_name) {
     tid_t tid;
     struct process_status *new_thread_status = malloc(sizeof(struct process_status));
     struct thread *current_thread = thread_current ();
-    list_push_back (&(current_thread->children), &(new_thread_status->elem)); 
+    struct thread_input input = {fn_copy, new_thread_status};
     sema_init (&new_thread_status->exec_sem, 1);
     sema_init(&temporary, 0);
-    sema_init(&new_thread_status->wait_sem, 1)
+    sema_init(&new_thread_status->wait_sem, 1);
+    list_push_back (&(current_thread->children), &(new_thread_status->elem)); 
     /* Make a copy of FILE_NAME.
        Otherwise there's a race between the caller and load(). */
     fn_copy = palloc_get_page(0);
@@ -70,10 +79,9 @@ tid_t process_execute(const char *file_name) {
         return TID_ERROR;
     strlcpy(fn_copy, file_name, PGSIZE);
 
-    bool can_execute = tokenize(file_name);
+    bool can_execute = tokenize((char *) file_name);
     if (can_execute) 
         {
-            struct thread_input input = {fname = fn_copy, status = new_thread_status};
             /* Create a new thread to execute FILE_NAME. */
             tid = thread_create(argv[0], PRI_DEFAULT, start_process, &input);
         }
@@ -93,7 +101,7 @@ void
 finish_thread(struct process_status *cur_thread, bool success)
     {
         if (!success) 
-            &cur_thread->exit_code = -1;
+            cur_thread->exit_code = -1;
         sema_up (&cur_thread->exec_sem);
     }
 
@@ -105,8 +113,8 @@ start_process(void *file_name_) {
     struct intr_frame if_;
     bool success;
 
-    struct thread *cur_thread = current_thread();
-    struct process_status *status = find_child_thread (&cur_thread->tid);
+    struct thread *cur_thread = thread_current();
+    struct process_status *status = find_child_thread ((int) &cur_thread->tid);
 
 
     /* Initialize interrupt frame and load executable. */
@@ -119,8 +127,10 @@ start_process(void *file_name_) {
     /* If load failed, quit. */
     palloc_free_page(file_name);
     if (!success)
-        finish_thread (status, success);
-        thread_exit();
+        {
+            finish_thread (status, success);
+            thread_exit();
+        }
     /* Start the user process by simulating a return from an
        interrupt, implemented by intr_exit (in
        threads/intr-stubs.S).  Because intr_exit takes all of its
@@ -144,13 +154,13 @@ start_process(void *file_name_) {
 int
 process_wait(tid_t child_tid UNUSED) {
     sema_down(&temporary);
-    struct process_status *child_thread = find_child_thread (child_tid);
+    struct process_status *child_thread = find_child_thread ((int) child_tid);
     if (child_thread == NULL) {
         return -1;
     }
     list_remove (&child_thread->elem);
     sema_down(&child_thread->wait_sem);
-    return &child_thread->exit_code;
+    return (int) &child_thread->exit_code;
 }
 
 void 
@@ -181,7 +191,7 @@ process_exit(void) {
         pagedir_destroy(pd);
     }
     sema_up(&temporary);
-    struct process_status *status = find_child_thread(&cur->tid);
+    struct process_status *status = find_child_thread((int) &cur->tid);
     finish_process(status);
 }
 
@@ -288,7 +298,7 @@ load(const char *file_name, void (**eip)(void), void **esp) {
         goto done;
     process_activate();
 
-    if (!tokenize(file_name)) {
+    if (!tokenize((char *) file_name)) {
         printf("tokenization failed! on loading %s", file_name);
         goto done;
     };

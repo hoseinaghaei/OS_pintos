@@ -89,18 +89,18 @@ does_user_access_to_memory(uint32_t *args, int args_size) {
 }
 
 void
-syscall_exec (struct intr_frame *, uint32_t args[])
+syscall_exec (struct intr_frame *f, uint32_t args[])
 {
     char *file_name = args[1];
-    intr_frame->eax = process_execute(file_name);  
+    f->eax = process_execute(file_name);  
     return;
 }
 
 void
-syscall_wait (struct intr_frame *, uint32_t args[])
+syscall_wait (struct intr_frame *f, uint32_t args[])
 {
     int pid = (int) args[1];
-    intr_frame->eax = process_wait(pid);   
+    f->eax = process_wait(pid);   
     return;
 }
 
