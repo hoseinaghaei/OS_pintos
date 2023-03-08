@@ -18,6 +18,7 @@
 #include "threads/synch.h"
 #include "threads/thread.h"
 #include "threads/vaddr.h"
+#include "threads/malloc.h"
 
 #define MAX_ARGUMENT_LENGTH 128
 #define MAX_ARGUMENT 32
@@ -35,6 +36,20 @@ static bool tokenize(char *);
 
 static void push_args_to_stack(void **esp);
 
+struct process_status* find_child_thread (int thread_id)
+    {
+        struct thread *cur = current_thread();
+        for (e = list_begin (&(cur->children)); e != list_end (&(cur->children)); e = list_next (e))
+            {
+            child = list_entry (e, struct child_parent_status, elem);
+            if (child->pid == (pid_t) child_tid)
+                break;
+            
+            child = NULL;
+            }
+        return child;
+    }
+
 /* Starts a new thread running a user program loaded from
    FILENAME.  The new thread may be scheduled (and may even exit)
    before process_execute() returns.  Returns the new process's
@@ -42,8 +57,12 @@ static void push_args_to_stack(void **esp);
 tid_t process_execute(const char *file_name) {
     char *fn_copy;
     tid_t tid;
-
+    struct process_status *new_thread_status = malloc(sizeof(struct process_status));
+    struct thread *current_thread = thread_current ();
+    list_push_back (&(current_thread->children), &(new_thread_status->elem)); 
+    sema_init (&new_thread_status->exec_sem, 1);
     sema_init(&temporary, 0);
+    sema_init(&new_thread_status->wait_sem, 1)
     /* Make a copy of FILE_NAME.
        Otherwise there's a race between the caller and load(). */
     fn_copy = palloc_get_page(0);
@@ -51,14 +70,32 @@ tid_t process_execute(const char *file_name) {
         return TID_ERROR;
     strlcpy(fn_copy, file_name, PGSIZE);
 
-    tokenize(file_name);
+    bool can_execute = tokenize(file_name);
+    if (can_execute) 
+        {
+            struct thread_input input = {fname = fn_copy, status = new_thread_status};
+            /* Create a new thread to execute FILE_NAME. */
+            tid = thread_create(argv[0], PRI_DEFAULT, start_process, &input);
+        }
+    else
+        {
+            tid = -1;
+        }
 
-    /* Create a new thread to execute FILE_NAME. */
-    tid = thread_create(argv[0], PRI_DEFAULT, start_process, fn_copy);
     if (tid == TID_ERROR)
         palloc_free_page(fn_copy);
+    else
+        sema_down (&new_thread_status->exec_sem);
     return tid;
 }
+
+void
+finish_thread(struct process_status *cur_thread, bool success)
+    {
+        if (!success) 
+            &cur_thread->exit_code = -1;
+        sema_up (&cur_thread->exec_sem);
+    }
 
 /* A thread function that loads a user process and starts it
    running. */
@@ -67,6 +104,10 @@ start_process(void *file_name_) {
     char *file_name = file_name_;
     struct intr_frame if_;
     bool success;
+
+    struct thread *cur_thread = current_thread();
+    struct process_status *status = find_child_thread (&cur_thread->tid);
+
 
     /* Initialize interrupt frame and load executable. */
     memset(&if_, 0, sizeof if_);
@@ -78,6 +119,7 @@ start_process(void *file_name_) {
     /* If load failed, quit. */
     palloc_free_page(file_name);
     if (!success)
+        finish_thread (status, success);
         thread_exit();
     /* Start the user process by simulating a return from an
        interrupt, implemented by intr_exit (in
@@ -87,6 +129,7 @@ start_process(void *file_name_) {
        and jump to it. */
     asm volatile ("movl %0, %%esp; jmp intr_exit" : : "g" (&if_) : "memory");
     NOT_REACHED();
+    finish_thread (status, success);
 }
 
 /* Waits for thread TID to die and returns its exit status.  If
@@ -101,8 +144,20 @@ start_process(void *file_name_) {
 int
 process_wait(tid_t child_tid UNUSED) {
     sema_down(&temporary);
-    return 0;
+    struct process_status *child_thread = find_child_thread (child_tid);
+    if (child_thread == NULL) {
+        return -1;
+    }
+    list_remove (&child_thread->elem);
+    sema_down(&child_thread->wait_sem);
+    return &child_thread->exit_code;
 }
+
+void 
+finish_process(struct process_status *process)
+    {
+        sema_up (&process->wait_sem);
+    }
 
 /* Free the current process's resources. */
 void
@@ -126,6 +181,8 @@ process_exit(void) {
         pagedir_destroy(pd);
     }
     sema_up(&temporary);
+    struct process_status *status = find_child_thread(&cur->tid);
+    finish_process(status);
 }
 
 /* Sets up the CPU for running user code in the current
