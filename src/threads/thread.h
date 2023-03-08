@@ -106,6 +106,9 @@ struct thread
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
 
+    struct process_status *p_status;
+    struct list children;
+
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
@@ -114,6 +117,21 @@ struct thread
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
   };
+
+struct process_status
+   {
+      int pid;
+      int exit_code;
+      struct list_elem elem;
+      struct semaphore wait_sem;
+      struct semaphore exec_sem;
+   };
+
+struct thread_input
+   {
+      void *fname;
+      struct process_status *status;
+   };
 
 /* If false (default), use round-robin scheduler.
    If true, use multi-level feedback queue scheduler.
