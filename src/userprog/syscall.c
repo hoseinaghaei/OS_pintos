@@ -89,25 +89,28 @@ does_user_access_to_memory(uint32_t *args, int args_size) {
     return true;
 }
 
+bool
+is_valid_str(char *str)
+    {
+        #ifdef USERPROG
+            struct thread *cur = thread_current();
+            char *var = pagedir_get_page (cur->pagedir, str);
+            return var != NULL && does_user_access_to_memory(str + strlen (var) + 1, 1);
+        #else
+            return true;
+        #endif
+    }
+    
 void
 syscall_exec (struct intr_frame *f, uint32_t args[])
 {
     char *file_name = args[1];
-    f->eax = process_execute(file_name);  
-    return;
-}
-
-void
-syscall_wait (struct intr_frame *f, uint32_t args[])
-{
-    int pid = (int) args[1];
-    f->eax = process_wait(pid);   
-    return;
-}
-void
-syscall_exec (struct intr_frame *f, uint32_t args[])
-{
-    char *file_name = args[1];
+    if (!is_valid_str (file_name))
+    {
+        thread_exit();
+        return;
+    }
+    
     f->eax = process_execute(file_name);  
     return;
 }
