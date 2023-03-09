@@ -1,5 +1,6 @@
 #include "userprog/syscall.h"
 #include "userprog/process.h"
+#include "userprog/process.h"
 #include <stdio.h>
 #include <syscall-nr.h>
 #include "threads/interrupt.h"
@@ -88,6 +89,21 @@ does_user_access_to_memory(uint32_t *args, int args_size) {
     return true;
 }
 
+void
+syscall_exec (struct intr_frame *f, uint32_t args[])
+{
+    char *file_name = args[1];
+    f->eax = process_execute(file_name);  
+    return;
+}
+
+void
+syscall_wait (struct intr_frame *f, uint32_t args[])
+{
+    int pid = (int) args[1];
+    f->eax = process_wait(pid);   
+    return;
+}
 void
 syscall_exec (struct intr_frame *f, uint32_t args[])
 {
