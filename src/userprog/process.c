@@ -38,7 +38,7 @@ static void push_args_to_stack(void **esp);
 
 static struct process_status* find_thread(int);
 
-void finish_thread(struct process_status*, bool);
+void finish_thread(struct process_status*);
 
 void finish_process(struct process_status*);
 
@@ -97,15 +97,20 @@ tid_t process_execute(const char *file_name) {
     if (tid == TID_ERROR)
         palloc_free_page(fn_copy);
     else
+    {
         sema_down (&(new_thread_status->exec_sem));
+        if (new_thread_status->exit_code == -1)
+        {
+            return -1;
+        }
+    }
+    
     return tid;
 }
 
 void
-finish_thread(struct process_status *cur_thread, bool success)
+finish_thread(struct process_status *cur_thread)
     {
-        if (!success) 
-            cur_thread->exit_code = -1;
         sema_up (&(cur_thread->exec_sem));
     }
 
@@ -137,11 +142,13 @@ start_process(void *file_name_) {
     palloc_free_page(file_name);
     if (!success)
         {
-            finish_thread (status, success);
+            finish_thread (status);
             finish_process(status);
+            status->exit_code = -1;
             thread_exit();
         }
-    finish_thread (status, success);
+    status->exit_code = 0;
+    finish_thread (status);
     finish_process(status);
     /* Start the user process by simulating a return from an
        interrupt, implemented by intr_exit (in

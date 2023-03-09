@@ -14,6 +14,9 @@ syscall_init(void) {
     intr_register_int(0x30, 3, INTR_ON, syscall_handler, "syscall");
 }
 
+void 
+syscall_exit(struct intr_frame *, int);
+
 void
 syscall_write(struct intr_frame *, uint32_t *args);
 
@@ -100,18 +103,26 @@ is_valid_str(char *str)
             return true;
         #endif
     }
-    
+
+void
+syscall_exit (struct intr_frame *f, int exit_code)
+{
+    f->eax = exit_code;
+    printf("%s: exit(%d)\n", &thread_current()->name, exit_code);
+    thread_exit();
+}
+
 void
 syscall_exec (struct intr_frame *f, uint32_t args[])
 {
     char *file_name = args[1];
     if (!is_valid_str (file_name))
     {
-        thread_exit();
+        syscall_exit (f, -1);
         return;
     }
     
-    f->eax = process_execute(file_name);  
+    f->eax = process_execute(file_name);      
     return;
 }
 
@@ -184,9 +195,7 @@ syscall_handler(struct intr_frame *f) {
             break;
     }
     if (args[0] == SYS_EXIT) {
-        f->eax = args[1];
-        printf("%s: exit(%d)\n", &thread_current()->name, args[1]);
-        thread_exit();
+        syscall_exit(f, (int) args[1]);
     }
 }
 
