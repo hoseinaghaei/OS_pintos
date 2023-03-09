@@ -64,22 +64,25 @@ struct process_status* find_thread (int tid)
    thread id, or TID_ERROR if the thread cannot be created. */
 tid_t process_execute(const char *file_name) {
     char *fn_copy;
+    char *fn_copy_2;
     tid_t tid;
     struct process_status *new_thread_status = malloc(sizeof(struct process_status));
     struct thread *current_thread = thread_current ();
     sema_init (&(new_thread_status->exec_sem), 0);
     sema_init(&temporary, 0);
-    sema_init(&(new_thread_status->wait_sem), 1);
+    sema_init(&(new_thread_status->wait_sem), 0);
     list_init(&(current_thread->children));
     list_push_back (&(current_thread->children), &(new_thread_status->elem)); 
     /* Make a copy of FILE_NAME.
        Otherwise there's a race between the caller and load(). */
     fn_copy = palloc_get_page(0);
-    if (fn_copy == NULL)
+    fn_copy_2 = palloc_get_page(0);
+    if (fn_copy == NULL || fn_copy_2 == NULL)
         return TID_ERROR;
     strlcpy(fn_copy, file_name, PGSIZE);
+    strlcpy(fn_copy_2, file_name, PGSIZE);
 
-    bool can_execute = tokenize((char *) file_name);
+    bool can_execute = tokenize(fn_copy_2);
     if (can_execute) 
         {
             struct thread_input input = {fn_copy, new_thread_status};
@@ -106,6 +109,12 @@ finish_thread(struct process_status *cur_thread, bool success)
         sema_up (&(cur_thread->exec_sem));
     }
 
+void 
+finish_process(struct process_status *process)
+    {
+        sema_up (&(process->wait_sem));
+    }
+
 /* A thread function that loads a user process and starts it
    running. */
 static void
@@ -129,9 +138,11 @@ start_process(void *file_name_) {
     if (!success)
         {
             finish_thread (status, success);
+            finish_process(status);
             thread_exit();
         }
     finish_thread (status, success);
+    finish_process(status);
     /* Start the user process by simulating a return from an
        interrupt, implemented by intr_exit (in
        threads/intr-stubs.S).  Because intr_exit takes all of its
@@ -153,22 +164,16 @@ start_process(void *file_name_) {
    does nothing. */
 int
 process_wait(tid_t child_tid UNUSED) {
+    struct process_status *child_thread = find_thread ((int) child_tid);
+    if (child_thread == NULL) {
+        return -1;
+    }
+    list_remove (&(child_thread->elem));
+    sema_down(&(child_thread->wait_sem));
     sema_down(&temporary);
-    //struct process_status *child_thread = find_thread ((int) child_tid);
-    //if (child_thread == NULL) {
-    //    return -1;
-    //}
-    //list_remove (&child_thread->elem);
-    //sema_down(&child_thread->wait_sem);
-    //return (int) &child_thread->exit_code;
+    return (int) (&child_thread->exit_code);
     return 0;
 }
-
-void 
-finish_process(struct process_status *process)
-    {
-        sema_up (&process->wait_sem);
-    }
 
 /* Free the current process's resources. */
 void
@@ -191,9 +196,8 @@ process_exit(void) {
         pagedir_activate(NULL);
         pagedir_destroy(pd);
     }
+    
     sema_up(&temporary);
-    //struct process_status *status = find_thread((int) &cur->tid);
-    //finish_process(status);
 }
 
 /* Sets up the CPU for running user code in the current
