@@ -108,6 +108,16 @@ kill (struct intr_frame *f)
     }
 }
 
+void
+handle_finishing_on_exception (int exit_code)
+{
+    struct thread *th = thread_current ();
+    if (th->p_status != NULL)
+    {
+        th->p_status->exit_code = exit_code;
+    }
+}
+
 /* Page fault handler.  This is a skeleton that must be filled in
    to implement virtual memory.  Some solutions to project 2 may
    also require modifying this code.
@@ -158,6 +168,7 @@ page_fault (struct intr_frame *f)
           user ? "user" : "kernel");
   f->eax=-1;
   printf("%s: exit(-1)\n", &thread_current()->name);
+  handle_finishing_on_exception(-1);
   thread_exit();
   kill (f);
 }

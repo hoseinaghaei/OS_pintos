@@ -36,27 +36,26 @@ static bool tokenize(char *);
 
 static void push_args_to_stack(void **esp);
 
-static struct process_status* find_thread(int);
+static struct process_status *find_thread(int);
 
-void finish_thread(struct process_status*);
+void finish_thread(struct process_status *);
 
-void finish_process(struct process_status*);
+void finish_process(struct process_status *);
 
-struct process_status* find_thread (int tid)
-    {
-        struct thread *cur = thread_current();
-        struct process_status *child = NULL;
-        struct list_elem *e = NULL;
-        for (e = list_begin (&(cur->children)); e != list_end (&(cur->children)); e = list_next (e))
-            {
-            child = list_entry (e, struct process_status, elem);
-            if (child->pid == (tid_t) tid)
-                break;
-            
-            child = NULL;
-            }
-        return child;
+struct process_status *find_thread(int tid) {
+    struct thread *cur = thread_current();
+    struct process_status *child = NULL;
+    struct list_elem *e = NULL;
+    for (e = list_begin(&(cur->children)); e != list_end(&(cur->children)); e = list_next(e)) {
+        child = list_entry(e,
+        struct process_status, elem);
+        if (child->pid == (tid_t) tid)
+            break;
+
+        child = NULL;
     }
+    return child;
+}
 
 /* Starts a new thread running a user program loaded from
    FILENAME.  The new thread may be scheduled (and may even exit)
@@ -67,68 +66,72 @@ tid_t process_execute(const char *file_name) {
     char *fn_copy_2;
     tid_t tid;
     struct process_status *new_thread_status = malloc(sizeof(struct process_status));
-    struct thread *current_thread = thread_current ();
-    sema_init (&(new_thread_status->exec_sem), 0);
+    struct thread *current_thread = thread_current();
+    sema_init(&(new_thread_status->exec_sem), 0);
 //    sema_init(&temporary, 0);
     sema_init(&(new_thread_status->wait_sem), 0);
-    list_push_back (&(current_thread->children), &new_thread_status->elem); 
     /* Make a copy of FILE_NAME.
        Otherwise there's a race between the caller and load(). */
     fn_copy = palloc_get_page(0);
-    fn_copy_2 = palloc_get_page(0);
-    if (fn_copy == NULL || fn_copy_2 == NULL)
+    if (fn_copy == NULL){
+        free(new_thread_status);
         return TID_ERROR;
+    }
+
+    fn_copy_2 = palloc_get_page(0);
+
+    if (fn_copy_2 == NULL) {
+        palloc_free_page(fn_copy);
+        free(new_thread_status);
+        return TID_ERROR;
+    }
+
     strlcpy(fn_copy, file_name, PGSIZE);
     strlcpy(fn_copy_2, file_name, PGSIZE);
 
     bool can_execute = tokenize(fn_copy_2);
     struct thread_input input = {fn_copy, new_thread_status, true};
 
-    if (can_execute) 
-        {
-            /* Create a new thread to execute FILE_NAME. */
-            tid = thread_create(argv[0], PRI_DEFAULT, start_process, &input);
-        }
-    else
-        {
-            tid = -1;
-        }
+    if (can_execute) {
+        /* Create a new thread to execute FILE_NAME. */
+        tid = thread_create(argv[0], PRI_DEFAULT, start_process, &input);
+    } else {
+        tid = -1;
+    }
 
-    if (tid == TID_ERROR)
+    if (tid == TID_ERROR){
         palloc_free_page(fn_copy);
-    else
-    {
-        sema_down (&(new_thread_status->exec_sem));
-        if (new_thread_status->exit_code == -1)
-        {
-            list_remove (&(new_thread_status->elem));
-            free (new_thread_status);
+        palloc_free_page(fn_copy_2);
+        free(new_thread_status);
+    }
+    else {
+        sema_down(&(new_thread_status->exec_sem));
+        palloc_free_page(fn_copy_2);
+        if (new_thread_status->exit_code == -1) {
+            free(new_thread_status);
             return -1;
         }
     }
 
-    if (!input.success)
-    {
-        list_remove (&(new_thread_status->elem));
-        free (new_thread_status);
-        return -1;   
+    if (!input.success) {
+        palloc_free_page(fn_copy);
+        free(new_thread_status);
+        return -1;
     }
-    
-    
+    list_push_back(&(current_thread->children), &new_thread_status->elem);
+
     return tid;
 }
 
 void
-finish_thread(struct process_status *cur_thread)
-    {
-        sema_up (&(cur_thread->wait_sem));
-    }
+finish_thread(struct process_status *cur_thread) {
+    sema_up(&(cur_thread->wait_sem));
+}
 
-void 
-finish_process(struct process_status *process)
-    {
-        sema_up (&(process->wait_sem));
-    }
+void
+finish_process(struct process_status *process) {
+    sema_up(&(process->wait_sem));
+}
 
 /* A thread function that loads a user process and starts it
    running. */
@@ -149,15 +152,14 @@ start_process(void *file_name_) {
     list_init(&cur_thread->children);
     cur_thread->p_status->pid = cur_thread->tid;
 
-    sema_up (&(cur_thread->p_status->exec_sem));
-    if (!success)
-        {
-            finish_thread (cur_thread->p_status);
-            cur_thread->p_status->exit_code = -1;
-            /* If load failed, quit. */
-            thread_exit();
-            palloc_free_page(file_name);
-        }
+    sema_up(&(cur_thread->p_status->exec_sem));
+    palloc_free_page(file_name);
+    if (!success) {
+        finish_thread(cur_thread->p_status);
+        cur_thread->p_status->exit_code = -1;
+        /* If load failed, quit. */
+        thread_exit();
+    }
     cur_thread->p_status->exit_code = cur_thread->tid;
 //    sema_up (&(cur_thread->p_status->exec_sem));
     //finish_process(status);
@@ -182,14 +184,38 @@ start_process(void *file_name_) {
    does nothing. */
 int
 process_wait(tid_t child_tid UNUSED) {
-    struct process_status *child_thread = find_thread ((int) child_tid);
+    struct process_status *child_thread = find_thread((int) child_tid);
     if (child_thread == NULL) {
         return -1;
     }
     sema_down(&(child_thread->wait_sem));
 //    sema_down(&temporary);
-    list_remove (&(child_thread->elem));
-    return child_thread->exit_code;
+    list_remove(&(child_thread->elem));
+    int exit_code  =child_thread->exit_code;
+    free(child_thread);
+    return exit_code;
+}
+
+
+void
+free_thread_file_descriptors(struct thread *cur) {
+    for (int i = 0; i < MAX_FILE_DESCRIPTOR_COUNT; i++) {
+        if (cur->t_fds[i] != NULL)
+            file_close(cur->t_fds[i]);
+    }
+}
+
+
+void
+free_children_status(struct list *children) {
+    struct list_elem *e;
+    struct process_status *child;
+
+    for (e = list_begin(children); e != list_end(children); e = list_next(e)) {
+        child = list_entry(e,
+        struct process_status, elem);
+        free(child);
+    }
 }
 
 /* Free the current process's resources. */
@@ -198,7 +224,9 @@ process_exit(void) {
     struct thread *cur = thread_current();
     uint32_t *pd;
 
-    sema_up (&(cur->p_status->wait_sem));
+    sema_up(&(cur->p_status->wait_sem));
+    free_thread_file_descriptors(cur);
+    free_children_status(&(cur->children));
     /* Destroy the current process's page directory and switch back
        to the kernel-only page directory. */
     pd = cur->pagedir;
@@ -214,7 +242,8 @@ process_exit(void) {
         pagedir_activate(NULL);
         pagedir_destroy(pd);
     }
-    file_close (cur->executed_file);
+    file_close(cur->executed_file);
+//    palloc_free_page(cur);
 //    sema_up(&temporary);
 }
 
