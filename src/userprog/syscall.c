@@ -132,66 +132,66 @@ syscall_exec (struct intr_frame *f, uint32_t args[])
         return;
     }
     
-    f->eax = process_execute(file_name);      
+    f->eax = process_execute (file_name);
     return;
 }
 
 void
 syscall_wait (struct intr_frame *f, uint32_t args[])
 {
-    f->eax = process_wait(args[1]);   
+    f->eax = process_wait (args[1]);
     return;
 }
 
 static void
-syscall_handler(struct intr_frame *f) {
+syscall_handler (struct intr_frame *f) {
     uint32_t *args = ((uint32_t *) f->esp);
 
-    if (!does_user_access_to_memory(args, sizeof args)) {
-        printf("%s: exit(-1)\n", &thread_current()->name);
-        handle_finishing(-1);
-        thread_exit();
+    if (!does_user_access_to_memory (args, sizeof args)) {
+        printf ("%s: exit(-1)\n", &thread_current ()->name);
+        handle_finishing (-1);
+        thread_exit ();
     }
    
     switch (args[0]) {
         case SYS_SEEK:
-            syscall_seek(f, args);
+            syscall_seek (f, args);
             break;
         case SYS_FILESIZE:
-            syscall_filesize(f, args);
+            syscall_filesize (f, args);
             break;
         case SYS_WRITE:
-            syscall_write(f, args);
+            syscall_write (f, args);
             break;
         case SYS_HALT:
-            shutdown_power_off();
+            shutdown_power_off ();
             break;
         case SYS_CREATE:
-            syscall_create(f, args);
+            syscall_create (f, args);
             break;
         case SYS_READ:
-            syscall_read(f, args);
+            syscall_read (f, args);
             break;
         case SYS_OPEN:
-            syscall_open(f, args);
+            syscall_open (f, args);
             break;
         case SYS_PRACTICE:
             f->eax = args[1] + 1;
             break;
         case SYS_REMOVE:
-            syscall_remove(f, args);
+            syscall_remove (f, args);
             break;
         case SYS_CLOSE:
-            syscall_close(f, args);
+            syscall_close (f, args);
             break;
         case SYS_EXEC:
-            syscall_exec(f, args);
+            syscall_exec (f, args);
             break;
         case SYS_WAIT:
-            syscall_wait(f, args);
+            syscall_wait (f, args);
             break;
         case SYS_TELL:
-            syscall_tell(f, args);
+            syscall_tell (f, args);
             break;
         default:
             break;
@@ -202,11 +202,11 @@ syscall_handler(struct intr_frame *f) {
 }
 
 void
-syscall_write(struct intr_frame *f, uint32_t *args) {
-    if (!does_user_access_to_memory(args[2], 1)) {
-        printf("%s: exit(-1)\n", &thread_current()->name);
-        handle_finishing(-1);
-        thread_exit();
+syscall_write (struct intr_frame *f, uint32_t *args) {
+    if (!does_user_access_to_memory (args[2], 1)) {
+        printf ("%s: exit(-1)\n", &thread_current ()->name);
+        handle_finishing (-1);
+        thread_exit ();
     }
     int fd = args[1];
     char *string = args[2];
@@ -220,27 +220,26 @@ syscall_write(struct intr_frame *f, uint32_t *args) {
     }
 
     if (fd > 128 || fd < 0) {
-        printf("%s: exit(-1)\n", &thread_current()->name);
-        handle_finishing(-1);
-        thread_exit();
+        printf ("%s: exit(-1)\n", &thread_current ()->name);
+        handle_finishing (-1);
+        thread_exit ();
     }
-    struct thread *t = thread_current();
+    struct thread *t = thread_current ();
     struct file *file = t->t_fds[fd];
     if (file != NULL) {
-        f->eax = file_write(file, string, size);
+        f->eax = file_write (file, string, size);
     } else {
-        printf("%s: exit(-1)\n", &thread_current()->name);
-        handle_finishing(-1);
-        thread_exit();
+        printf ("%s: exit(-1)\n", &thread_current ()->name);
+        handle_finishing (-1);
+        thread_exit ();
     }
-
 }
 
 void
-syscall_create(struct intr_frame *f, uint32_t *args) {
+syscall_create (struct intr_frame *f, uint32_t *args) {
 
-    if (!does_user_access_to_memory((void *) args[1], 1)) {
-        printf("%s: exit(-1)\n", &thread_current()->name);
+    if (!does_user_access_to_memory ((void *) args[1], 1)) {
+        printf ("%s: exit(-1)\n", &thread_current ()->name);
         handle_finishing(-1);
         thread_exit();
     }
