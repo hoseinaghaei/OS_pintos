@@ -1,56 +1,55 @@
-#include "userprog/syscall.h"
-#include "userprog/process.h"
-#include "userprog/process.h"
 #include <stdio.h>
 #include <syscall-nr.h>
 #include "threads/interrupt.h"
 #include "threads/thread.h"
 #include "threads/vaddr.h"
+#include "userprog/syscall.h"
+#include "userprog/process.h"
+#include "userprog/process.h"
 
-static void syscall_handler(struct intr_frame *);
+static void syscall_handler (struct intr_frame *);
 
 void
-syscall_init(void) {
-    intr_register_int(0x30, 3, INTR_ON, syscall_handler, "syscall");
+syscall_init (void) {
+    intr_register_int (0x30, 3, INTR_ON, syscall_handler, "syscall");
 }
 
 void 
-syscall_exit(struct intr_frame *, int);
+syscall_exit (struct intr_frame *, int);
 
 void
-syscall_write(struct intr_frame *, uint32_t *args);
+syscall_write (struct intr_frame *, uint32_t *args);
 
 void
-syscall_read(struct intr_frame *, uint32_t *);
+syscall_read (struct intr_frame *, uint32_t *);
 
 void
-syscall_create(struct intr_frame *, uint32_t *);
+syscall_create (struct intr_frame *, uint32_t *);
 
 void
-syscall_open(struct intr_frame *f, uint32_t *args);
+syscall_open (struct intr_frame *f, uint32_t *args);
 
 void
-syscall_close(struct intr_frame *, uint32_t *);
+syscall_close (struct intr_frame *, uint32_t *);
 
 void
-syscall_exec(struct intr_frame *, uint32_t args[]);
+syscall_exec (struct intr_frame *, uint32_t args[]);
 
 void
-syscall_wait(struct intr_frame *, uint32_t args[]);
+syscall_wait (struct intr_frame *, uint32_t args[]);
 
 
 void
-syscall_filesize(struct intr_frame *, uint32_t *);
+syscall_filesize (struct intr_frame *, uint32_t *);
 
 void
-remove_syscall(struct intr_frame *, uint32_t *);
+remove_syscall (struct intr_frame *, uint32_t *);
 
 void
-syscall_tell(struct intr_frame *, uint32_t *);
-
+syscall_tell (struct intr_frame *, uint32_t *);
 
 bool
-is_args_null(uint32_t *args, int args_size) {
+is_args_null (uint32_t *args, int args_size) {
     int i = 0;
     while (i < args_size) {
         if (args[i] == NULL) {
@@ -62,10 +61,10 @@ is_args_null(uint32_t *args, int args_size) {
 }
 
 bool
-is_user_access_memory(uint32_t *args, int args_size) {
+is_user_access_memory (uint32_t *args, int args_size) {
     int i = 0;
     while (i < args_size) {
-        if (!(is_user_vaddr(args))) {
+        if (!(is_user_vaddr (args))) {
             return false;
         }
         i++;
@@ -76,14 +75,14 @@ is_user_access_memory(uint32_t *args, int args_size) {
 
 
 static bool
-does_user_access_to_memory(uint32_t *args, int args_size) {
-    struct thread *t = thread_current();
+does_user_access_to_memory (uint32_t *args, int args_size) {
+    struct thread *t = thread_current ();
 
     // check if user access to the memory (user space)
 
     int i = 0;
     while (i < args_size) {
-        if (args == NULL || !(is_user_vaddr(args)) || pagedir_get_page(t->pagedir, args) == NULL) {
+        if (args == NULL || !(is_user_vaddr (args)) || pagedir_get_page (t->pagedir, args) == NULL) {
             return false;
         }
         i += 1;
@@ -93,12 +92,12 @@ does_user_access_to_memory(uint32_t *args, int args_size) {
 }
 
 bool
-is_valid_str(char *str)
+is_valid_str (char *str)
     {
         #ifdef USERPROG
-            struct thread *cur = thread_current();
+            struct thread *cur = thread_current ();
             char *var = pagedir_get_page (cur->pagedir, str);
-            return var != NULL && does_user_access_to_memory(str + strlen (var) + 1, 1);
+            return var != NULL && does_user_access_to_memory (str + strlen (var) + 1, 1);
         #else
             return true;
         #endif
@@ -118,9 +117,9 @@ void
 syscall_exit (struct intr_frame *f, int exit_code)
 {
     f->eax = exit_code;
-    printf("%s: exit(%d)\n", &thread_current()->name, exit_code);
+    printf ("%s: exit(%d)\n", &thread_current ()->name, exit_code);
     handle_finishing (exit_code);
-    thread_exit();
+    thread_exit ();
 }
 
 void
