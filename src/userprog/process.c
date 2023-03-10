@@ -69,7 +69,7 @@ tid_t process_execute(const char *file_name) {
     struct process_status *new_thread_status = malloc(sizeof(struct process_status));
     struct thread *current_thread = thread_current ();
     sema_init (&(new_thread_status->exec_sem), 0);
-    sema_init(&temporary, 0);
+//    sema_init(&temporary, 0);
     sema_init(&(new_thread_status->wait_sem), 0);
     list_push_back (&(current_thread->children), &new_thread_status->elem); 
     /* Make a copy of FILE_NAME.
@@ -149,6 +149,7 @@ start_process(void *file_name_) {
     list_init(&cur_thread->children);
     cur_thread->p_status->pid = cur_thread->tid;
 
+    sema_up (&(cur_thread->p_status->exec_sem));
     if (!success)
         {
             finish_thread (cur_thread->p_status);
@@ -158,7 +159,7 @@ start_process(void *file_name_) {
             palloc_free_page(file_name);
         }
     cur_thread->p_status->exit_code = cur_thread->tid;
-    sema_up (&(cur_thread->p_status->exec_sem));
+//    sema_up (&(cur_thread->p_status->exec_sem));
     //finish_process(status);
     /* Start the user process by simulating a return from an
        interrupt, implemented by intr_exit (in
@@ -186,7 +187,7 @@ process_wait(tid_t child_tid UNUSED) {
         return -1;
     }
     sema_down(&(child_thread->wait_sem));
-    sema_down(&temporary);
+//    sema_down(&temporary);
     list_remove (&(child_thread->elem));
     return child_thread->exit_code;
 }
@@ -213,7 +214,7 @@ process_exit(void) {
         pagedir_activate(NULL);
         pagedir_destroy(pd);
     }
-    sema_up(&temporary);
+//    sema_up(&temporary);
 }
 
 /* Sets up the CPU for running user code in the current
