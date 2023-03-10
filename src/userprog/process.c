@@ -192,6 +192,7 @@ free_thread_file_descriptors(struct thread *cur) {
     }
 }
 
+
 void
 free_children_status(struct list *children) {
     struct list_elem *e;
