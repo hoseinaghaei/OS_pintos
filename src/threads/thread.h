@@ -125,12 +125,14 @@ struct process_status
       struct list_elem elem;
       struct semaphore wait_sem;
       struct semaphore exec_sem;
+      struct lock rw_lock;
    };
 
 struct thread_input
    {
       void *fname;
       struct process_status *status;
+      bool success;
    };
 
 /* If false (default), use round-robin scheduler.
