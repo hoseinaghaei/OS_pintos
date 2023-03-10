@@ -185,8 +185,7 @@ process_wait(tid_t child_tid UNUSED) {
 
 void
 free_thread_file_descriptors(struct thread *cur) {
-    int i;
-    for (i = 0; i < 128; i++)
+    for (int i = 0; i < 128; i++)
     {
         if (cur->t_fds[i] != NULL)
             file_close(cur->t_fds[i]);
