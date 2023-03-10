@@ -149,14 +149,13 @@ start_process(void *file_name_) {
     list_init(&cur_thread->children);
     cur_thread->p_status->pid = cur_thread->tid;
 
-    /* If load failed, quit. */
-    palloc_free_page(file_name);
     if (!success)
         {
-            finish_thread (&cur_thread->p_status);
-            //finish_process(status);
+            finish_thread (cur_thread->p_status);
             cur_thread->p_status->exit_code = -1;
+            /* If load failed, quit. */
             thread_exit();
+            palloc_free_page(file_name);
         }
     cur_thread->p_status->exit_code = cur_thread->tid;
     finish_thread (cur_thread->p_status);
