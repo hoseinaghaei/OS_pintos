@@ -158,7 +158,7 @@ start_process(void *file_name_) {
             palloc_free_page(file_name);
         }
     cur_thread->p_status->exit_code = cur_thread->tid;
-    sema_up (&(cur_thread->p_status->exec_sem))
+    sema_up (&(cur_thread->p_status->exec_sem));
     //finish_process(status);
     /* Start the user process by simulating a return from an
        interrupt, implemented by intr_exit (in
