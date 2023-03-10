@@ -104,11 +104,22 @@ is_valid_str(char *str)
         #endif
     }
 
+void 
+handle_finishing (int exit_code)
+{
+    struct thread *th = thread_current ();
+    if (th->p_status != NULL)
+    {
+        th->p_status->exit_code = exit_code;
+    }
+}
+
 void
 syscall_exit (struct intr_frame *f, int exit_code)
 {
     f->eax = exit_code;
     printf("%s: exit(%d)\n", &thread_current()->name, exit_code);
+    handle_finishing (exit_code);
     thread_exit();
 }
 
@@ -129,8 +140,7 @@ syscall_exec (struct intr_frame *f, uint32_t args[])
 void
 syscall_wait (struct intr_frame *f, uint32_t args[])
 {
-    int pid = (int) args[1];
-    f->eax = process_wait(pid);   
+    f->eax = process_wait(args[1]);   
     return;
 }
 
@@ -140,17 +150,10 @@ syscall_handler(struct intr_frame *f) {
 
     if (!does_user_access_to_memory(args, sizeof args)) {
         printf("%s: exit(-1)\n", &thread_current()->name);
+        handle_finishing(-1);
         thread_exit();
     }
-    /*
-     * The following print statement, if uncommented, will print out the syscall
-     * number whenever a process enters a system call. You might find it useful
-     * when debugging. It will cause tests to fail, however, so you should not
-     * include it in your final submission.
-     */
-
-
-    /* printf("System call number: %d\n", args[0]); */
+   
     switch (args[0]) {
         case SYS_SEEK:
             syscall_seek(f, args);
@@ -203,6 +206,7 @@ void
 syscall_write(struct intr_frame *f, uint32_t *args) {
     if (!does_user_access_to_memory(args[2], 1)) {
         printf("%s: exit(-1)\n", &thread_current()->name);
+        handle_finishing(-1);
         thread_exit();
     }
     int fd = args[1];
@@ -218,6 +222,7 @@ syscall_write(struct intr_frame *f, uint32_t *args) {
 
     if (fd > 128 || fd < 0) {
         printf("%s: exit(-1)\n", &thread_current()->name);
+        handle_finishing(-1);
         thread_exit();
     }
     struct thread *t = thread_current();
@@ -226,6 +231,7 @@ syscall_write(struct intr_frame *f, uint32_t *args) {
         f->eax = file_write(file, string, size);
     } else {
         printf("%s: exit(-1)\n", &thread_current()->name);
+        handle_finishing(-1);
         thread_exit();
     }
 
@@ -236,6 +242,7 @@ syscall_create(struct intr_frame *f, uint32_t *args) {
 
     if (!does_user_access_to_memory((void *) args[1], 1)) {
         printf("%s: exit(-1)\n", &thread_current()->name);
+        handle_finishing(-1);
         thread_exit();
     }
     f->eax = filesys_create((const char *) args[1], args[2]);
@@ -245,6 +252,7 @@ void
 syscall_read(struct intr_frame *f, uint32_t *args) {
     if (!does_user_access_to_memory(args[2], 1)) {
         printf("%s: exit(-1)\n", &thread_current()->name);
+        handle_finishing(-1);
         thread_exit();
     }
 
@@ -254,6 +262,7 @@ syscall_read(struct intr_frame *f, uint32_t *args) {
 
     if (fd > 128 || fd < 0) {
         printf("%s: exit(-1)\n", &thread_current()->name);
+        handle_finishing(-1);
         thread_exit();
     }
 
@@ -261,6 +270,7 @@ syscall_read(struct intr_frame *f, uint32_t *args) {
     struct file *file = t->t_fds[fd];
     if (file == NULL) {
         printf("%s: exit(-1)\n", &thread_current()->name);
+        handle_finishing(-1);
         thread_exit();
     }
     f->eax = file_read(file, string, size);
@@ -280,6 +290,7 @@ void
 syscall_open(struct intr_frame *f, uint32_t *args) {
     if (!does_user_access_to_memory(args[1], 1)) {
         printf("%s: exit(-1)\n", &thread_current()->name);
+        handle_finishing(-1);
         thread_exit();
     }
     struct thread *t = thread_current();
@@ -296,12 +307,14 @@ void
 syscall_close(struct intr_frame *f, uint32_t *args) {
     if (!does_user_access_to_memory(args[2], 1)) {
         printf("%s: exit(-1)\n", &thread_current()->name);
+        handle_finishing(-1);
         thread_exit();
     }
 
     /* Fail when closing a wrong fd. */
     if (args[1] < 0 || args[1] > 128 || args[1] < 3) {
         printf("%s: exit(-1)\n", &thread_current()->name);
+        handle_finishing(-1);
         thread_exit();
     }
 
@@ -316,12 +329,14 @@ syscall_seek(struct intr_frame *f, uint32_t *args) {
 
     if (fd <= 0 || fd > 128 || fd == 1) {
         printf("%s: exit(-1)\n", &thread_current()->name);
+        handle_finishing(-1);
         thread_exit();
     }
 
     struct thread *t = thread_current();
     if (t->t_fds[fd] == NULL) {
         printf("%s: exit(-1)\n", &thread_current()->name);
+        handle_finishing(-1);
         thread_exit();
     }
 
@@ -329,6 +344,7 @@ syscall_seek(struct intr_frame *f, uint32_t *args) {
     if (length < 0) {
         printf("%d lenght", length);
         printf("%s: exit(-1)\n", &thread_current()->name);
+        handle_finishing(-1);
         thread_exit();
     }
 
@@ -339,18 +355,21 @@ void
 syscall_filesize(struct intr_frame *f, uint32_t *args) {
     if (!does_user_access_to_memory(args[2], 1)) {
         printf("%s: exit(-1)\n", &thread_current()->name);
-        thread_exit();
+        handle_finishing(-1);   
+        thread_exit();   
     }
 
     int fd = (int) args[1];
 
     if (fd <= 0 || fd > 128 || fd == 1) {
         printf("%s: exit(-1)\n", &thread_current()->name);
+        handle_finishing(-1);
         thread_exit();
     }
     struct thread *t = thread_current();
     if (t->t_fds[fd] == NULL) {
         printf("%s: exit(-1)\n", &thread_current()->name);
+        handle_finishing(-1);
         thread_exit();
     }
     f->eax = file_length(t->t_fds[fd]);
@@ -360,6 +379,7 @@ void
 syscall_remove(struct intr_frame *f, uint32_t *args) {
     if (!does_user_access_to_memory(args[1], 1)) {
         printf("%s: exit(-1)\n", &thread_current()->name);
+        handle_finishing(-1);
         thread_exit();
     }
 
@@ -373,12 +393,14 @@ syscall_tell(struct intr_frame *f, uint32_t *args) {
     /* Fail when tell of a wrong fd or standard input or standard output */
     if (fd >= 0 || fd < 128 || fd == 1) {
         printf("%s: exit(-1)\n", &thread_current()->name);
+        handle_finishing(-1);
         thread_exit();
     }
 
     struct thread *t = thread_current();
     if (t->t_fds[fd] == NULL) {
         printf("%s: exit(-1)\n", &thread_current()->name);
+        handle_finishing(-1);
         thread_exit();
     }
 

@@ -71,8 +71,7 @@ tid_t process_execute(const char *file_name) {
     sema_init (&(new_thread_status->exec_sem), 0);
     sema_init(&temporary, 0);
     sema_init(&(new_thread_status->wait_sem), 0);
-    list_init(&(current_thread->children));
-    list_push_back (&(current_thread->children), &(new_thread_status->elem)); 
+    list_push_back (&(current_thread->children), &new_thread_status->elem); 
     /* Make a copy of FILE_NAME.
        Otherwise there's a race between the caller and load(). */
     fn_copy = palloc_get_page(0);
@@ -101,6 +100,8 @@ tid_t process_execute(const char *file_name) {
         sema_down (&(new_thread_status->exec_sem));
         if (new_thread_status->exit_code == -1)
         {
+            list_remove (&(new_thread_status->elem));
+            free (new_thread_status);
             return -1;
         }
     }
@@ -129,6 +130,7 @@ start_process(void *file_name_) {
     bool success;
 
     struct thread *cur_thread = thread_current();
+    list_init(&cur_thread->children);
     struct process_status *status = ((struct thread_input *) file_name_)->status;
     status->pid = cur_thread->tid;
     /* Initialize interrupt frame and load executable. */
@@ -147,7 +149,7 @@ start_process(void *file_name_) {
             status->exit_code = -1;
             thread_exit();
         }
-    status->exit_code = 0;
+    status->exit_code = cur_thread->tid;
     finish_thread (status);
     finish_process(status);
     /* Start the user process by simulating a return from an
@@ -175,11 +177,10 @@ process_wait(tid_t child_tid UNUSED) {
     if (child_thread == NULL) {
         return -1;
     }
-    list_remove (&(child_thread->elem));
     sema_down(&(child_thread->wait_sem));
     sema_down(&temporary);
-    return (int) (&child_thread->exit_code);
-    return 0;
+    list_remove (&(child_thread->elem));
+    return child_thread->exit_code;
 }
 
 /* Free the current process's resources. */
