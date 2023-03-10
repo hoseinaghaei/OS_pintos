@@ -351,31 +351,31 @@ syscall_seek (struct intr_frame *f, uint32_t *args) {
 }
 
 void
-syscall_filesize(struct intr_frame *f, uint32_t *args) {
-    if (!does_user_access_to_memory(args[2], 1)) {
-        printf("%s: exit(-1)\n", &thread_current()->name);
-        handle_finishing(-1);   
-        thread_exit();   
+syscall_filesize (struct intr_frame *f, uint32_t *args) {
+    if (!does_user_access_to_memory (args[2], 1)) {
+        printf ("%s: exit(-1)\n", &thread_current ()->name);
+        handle_finishing (-1);
+        thread_exit ();
     }
 
     int fd = (int) args[1];
 
     if (fd <= 0 || fd > 128 || fd == 1) {
-        printf("%s: exit(-1)\n", &thread_current()->name);
-        handle_finishing(-1);
-        thread_exit();
+        printf ("%s: exit(-1)\n", &thread_current ()->name);
+        handle_finishing (-1);
+        thread_exit ();
     }
-    struct thread *t = thread_current();
+    struct thread *t = thread_current ();
     if (t->t_fds[fd] == NULL) {
-        printf("%s: exit(-1)\n", &thread_current()->name);
-        handle_finishing(-1);
-        thread_exit();
+        printf ("%s: exit(-1)\n", &thread_current ()->name);
+        handle_finishing (-1);
+        thread_exit ();
     }
-    f->eax = file_length(t->t_fds[fd]);
+    f->eax = file_length (t->t_fds[fd]);
 }
 
 void
-syscall_remove(struct intr_frame *f, uint32_t *args) {
+syscall_remove (struct intr_frame *f, uint32_t *args) {
     if (!does_user_access_to_memory(args[1], 1)) {
         printf("%s: exit(-1)\n", &thread_current()->name);
         handle_finishing(-1);
@@ -386,23 +386,23 @@ syscall_remove(struct intr_frame *f, uint32_t *args) {
 }
 
 void
-syscall_tell(struct intr_frame *f, uint32_t *args) {
+syscall_tell (struct intr_frame *f, uint32_t *args) {
     int fd = args[1];
 
     /* Fail when tell of a wrong fd or standard input or standard output */
     if (fd >= 0 || fd < 128 || fd == 1) {
-        printf("%s: exit(-1)\n", &thread_current()->name);
-        handle_finishing(-1);
-        thread_exit();
+        printf ("%s: exit(-1)\n", &thread_current ()->name);
+        handle_finishing (-1);
+        thread_exit ();
     }
 
-    struct thread *t = thread_current();
+    struct thread *t = thread_current ();
     if (t->t_fds[fd] == NULL) {
-        printf("%s: exit(-1)\n", &thread_current()->name);
-        handle_finishing(-1);
-        thread_exit();
+        printf ("%s: exit(-1)\n", &thread_current ()->name);
+        handle_finishing (-1);
+        thread_exit ();
     }
 
 
-    f->eax = file_tell(t->t_fds[fd]);
+    f->eax = file_tell (t->t_fds[fd]);
 }
