@@ -7,7 +7,8 @@
 #include "userprog/process.h"
 #include "userprog/process.h"
 
-static void syscall_handler (struct intr_frame *);
+static void
+syscall_handler (struct intr_frame *);
 
 void
 syscall_init (void) {
