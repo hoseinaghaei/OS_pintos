@@ -98,7 +98,7 @@ tid_t process_execute(const char *file_name) {
         palloc_free_page(fn_copy);
     else
     {
-        sema_down (&(new_thread_status->wait_sem));
+        sema_down (&(new_thread_status->exec_sem));
         if (new_thread_status->exit_code == -1)
         {
             list_remove (&(new_thread_status->elem));
@@ -158,7 +158,7 @@ start_process(void *file_name_) {
             palloc_free_page(file_name);
         }
     cur_thread->p_status->exit_code = cur_thread->tid;
-    finish_thread (cur_thread->p_status);
+    sema_up (&(cur_thread->exec_sem))
     //finish_process(status);
     /* Start the user process by simulating a return from an
        interrupt, implemented by intr_exit (in
