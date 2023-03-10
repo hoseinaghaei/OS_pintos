@@ -213,7 +213,7 @@ process_exit(void) {
 
     sema_up(&(cur->p_status->wait_sem));
     free_thread_file_descriptors(cur);
-    free_children_status(&(cur->children))
+    free_children_status(&(cur->children));
     /* Destroy the current process's page directory and switch back
        to the kernel-only page directory. */
     pd = cur->pagedir;
