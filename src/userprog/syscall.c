@@ -198,7 +198,7 @@ syscall_handler (struct intr_frame *f) {
             break;
     }
     if (args[0] == SYS_EXIT) {
-        syscall_exit(f, (int) args[1]);
+        syscall_exit (f, (int) args[1]);
     }
 }
 
@@ -241,18 +241,18 @@ syscall_create (struct intr_frame *f, uint32_t *args) {
 
     if (!does_user_access_to_memory ((void *) args[1], 1)) {
         printf ("%s: exit(-1)\n", &thread_current ()->name);
-        handle_finishing(-1);
-        thread_exit();
+        handle_finishing (-1);
+        thread_exit ();
     }
-    f->eax = filesys_create((const char *) args[1], args[2]);
+    f->eax = filesys_create ((const char *) args[1], args[2]);
 }
 
 void
-syscall_read(struct intr_frame *f, uint32_t *args) {
+syscall_read (struct intr_frame *f, uint32_t *args) {
     if (!does_user_access_to_memory(args[2], 1)) {
-        printf("%s: exit(-1)\n", &thread_current()->name);
+        printf("%s: exit(-1)\n", &thread_current ()->name);
         handle_finishing(-1);
-        thread_exit();
+        thread_exit ();
     }
 
     int fd = args[1];
@@ -260,23 +260,23 @@ syscall_read(struct intr_frame *f, uint32_t *args) {
     unsigned size = args[3];
 
     if (fd > 128 || fd < 0) {
-        printf("%s: exit(-1)\n", &thread_current()->name);
+        printf("%s: exit(-1)\n", &thread_current ()->name);
         handle_finishing(-1);
-        thread_exit();
+        thread_exit ();
     }
 
-    struct thread *t = thread_current();
+    struct thread *t = thread_current ();
     struct file *file = t->t_fds[fd];
     if (file == NULL) {
-        printf("%s: exit(-1)\n", &thread_current()->name);
-        handle_finishing(-1);
-        thread_exit();
+        printf ("%s: exit(-1)\n", &thread_current ()->name);
+        handle_finishing (-1);
+        thread_exit ();
     }
-    f->eax = file_read(file, string, size);
+    f->eax = file_read (file, string, size);
 }
 
 int
-get_thread_available_fd(struct thread *t) {
+get_thread_available_fd (struct thread *t) {
     for (int i = 3; i < MAX_FILE_DESCRIPTOR_COUNT; i++) {
         if (t->t_fds[i] == NULL) {
             return i;
@@ -286,68 +286,68 @@ get_thread_available_fd(struct thread *t) {
 }
 
 void
-syscall_open(struct intr_frame *f, uint32_t *args) {
-    if (!does_user_access_to_memory(args[1], 1)) {
-        printf("%s: exit(-1)\n", &thread_current()->name);
+syscall_open (struct intr_frame *f, uint32_t *args) {
+    if (!does_user_access_to_memory (args[1], 1)) {
+        printf ("%s: exit(-1)\n", &thread_current ()->name);
         handle_finishing(-1);
-        thread_exit();
+        thread_exit ();
     }
-    struct thread *t = thread_current();
-    int t_fd_id = get_thread_available_fd(t);
+    struct thread *t = thread_current ();
+    int t_fd_id = get_thread_available_fd (t);
     f->eax = t_fd_id;
     if (t_fd_id > 0) {
-        t->t_fds[t_fd_id] = filesys_open((const char *) args[1]);
+        t->t_fds[t_fd_id] = filesys_open ((const char *) args[1]);
         if (t->t_fds[t_fd_id] == NULL)
             f->eax = -1;
     }
 }
 
 void
-syscall_close(struct intr_frame *f, uint32_t *args) {
+syscall_close (struct intr_frame *f, uint32_t *args) {
     if (!does_user_access_to_memory(args[2], 1)) {
-        printf("%s: exit(-1)\n", &thread_current()->name);
-        handle_finishing(-1);
-        thread_exit();
+        printf ("%s: exit(-1)\n", &thread_current()->name);
+        handle_finishing (-1);
+        thread_exit ();
     }
 
     /* Fail when closing a wrong fd. */
     if (args[1] < 0 || args[1] > 128 || args[1] < 3) {
-        printf("%s: exit(-1)\n", &thread_current()->name);
-        handle_finishing(-1);
-        thread_exit();
+        printf ("%s: exit(-1)\n", &thread_current()->name);
+        handle_finishing (-1);
+        thread_exit ();
     }
 
-    struct thread *t = thread_current();
-    file_close(t->t_fds[args[1]]);
+    struct thread *t = thread_current ();
+    file_close (t->t_fds[args[1]]);
     t->t_fds[args[1]] = NULL;
 }
 
 void
-syscall_seek(struct intr_frame *f, uint32_t *args) {
+syscall_seek (struct intr_frame *f, uint32_t *args) {
     int fd = (int) args[1];
 
     if (fd <= 0 || fd > 128 || fd == 1) {
-        printf("%s: exit(-1)\n", &thread_current()->name);
-        handle_finishing(-1);
-        thread_exit();
+        printf("%s: exit(-1)\n", &thread_current ()->name);
+        handle_finishing (-1);
+        thread_exit ();
     }
 
-    struct thread *t = thread_current();
+    struct thread *t = thread_current ();
     if (t->t_fds[fd] == NULL) {
-        printf("%s: exit(-1)\n", &thread_current()->name);
-        handle_finishing(-1);
-        thread_exit();
+        printf ("%s: exit(-1)\n", &thread_current ()->name);
+        handle_finishing (-1);
+        thread_exit ();
     }
 
     int length = (int) args[2];
     if (length < 0) {
-        printf("%d lenght", length);
-        printf("%s: exit(-1)\n", &thread_current()->name);
-        handle_finishing(-1);
-        thread_exit();
+        printf ("%d lenght", length);
+        printf ("%s: exit(-1)\n", &thread_current ()->name);
+        handle_finishing (-1);
+        thread_exit ();
     }
 
-    file_seek(t->t_fds[fd], length);
+    file_seek (t->t_fds[fd], length);
 }
 
 void
