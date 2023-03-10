@@ -275,7 +275,7 @@ syscall_seek(struct intr_frame *f, uint32_t *args) {
         thread_exit();
     }
 
-    f->eax = file_seek(t->t_fds[fd], length);
+    file_seek(t->t_fds[fd], length);
 }
 
 void
