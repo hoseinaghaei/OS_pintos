@@ -193,6 +193,18 @@ free_thread_file_descriptors(struct thread *cur) {
     }
 }
 
+void
+free_children_status(struct list *children) {
+    struct list_elem *e;
+    struct process_status *child;
+
+    for (e = list_begin (children); e != list_end (children); e = list_next (e))
+    {
+        child = list_entry (e, struct process_status, elem);
+        free(child);
+    }
+}
+
 /* Free the current process's resources. */
 void
 process_exit(void) {
@@ -201,6 +213,7 @@ process_exit(void) {
 
     sema_up(&(cur->p_status->wait_sem));
     free_thread_file_descriptors(cur);
+    free_children_status(&(cur->children))
     /* Destroy the current process's page directory and switch back
        to the kernel-only page directory. */
     pd = cur->pagedir;
