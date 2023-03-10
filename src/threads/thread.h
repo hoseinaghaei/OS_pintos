@@ -108,6 +108,7 @@ struct thread
 
     struct process_status *p_status;
     struct list children;
+    struct file *executed_file;
 
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
