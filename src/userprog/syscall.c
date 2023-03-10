@@ -155,49 +155,49 @@ syscall_handler (struct intr_frame *f) {
     }
    
     switch (args[0]) {
-        case SYS_SEEK:
+        case SYS_SEEK: // checks if a file exists
             syscall_seek (f, args);
             break;
-        case SYS_FILESIZE:
+        case SYS_FILESIZE: // checkout a file's size
             syscall_filesize (f, args);
             break;
-        case SYS_WRITE:
+        case SYS_WRITE: // write in a file
             syscall_write (f, args);
             break;
-        case SYS_HALT:
+        case SYS_HALT: // halt the OS
             shutdown_power_off ();
             break;
-        case SYS_CREATE:
+        case SYS_CREATE: // create a new file
             syscall_create (f, args);
             break;
-        case SYS_READ:
+        case SYS_READ: // read from a file
             syscall_read (f, args);
             break;
-        case SYS_OPEN:
+        case SYS_OPEN: // open a file and add it to FDs
             syscall_open (f, args);
             break;
-        case SYS_PRACTICE:
+        case SYS_PRACTICE: // get arg + 1
             f->eax = args[1] + 1;
             break;
-        case SYS_REMOVE:
+        case SYS_REMOVE: // remove a file
             syscall_remove (f, args);
             break;
-        case SYS_CLOSE:
+        case SYS_CLOSE: // close a file
             syscall_close (f, args);
             break;
-        case SYS_EXEC:
+        case SYS_EXEC: // execute a file in kernel
             syscall_exec (f, args);
             break;
-        case SYS_WAIT:
+        case SYS_WAIT: // wait for a child process
             syscall_wait (f, args);
             break;
-        case SYS_TELL:
+        case SYS_TELL: // checkout current position in a file
             syscall_tell (f, args);
             break;
         default:
             break;
     }
-    if (args[0] == SYS_EXIT) {
+    if (args[0] == SYS_EXIT) { // terminate a process
         syscall_exit (f, (int) args[1]);
     }
 }
