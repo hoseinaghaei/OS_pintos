@@ -70,13 +70,22 @@ tid_t process_execute(const char *file_name) {
     sema_init(&(new_thread_status->exec_sem), 0);
 //    sema_init(&temporary, 0);
     sema_init(&(new_thread_status->wait_sem), 0);
-    list_push_back(&(current_thread->children), &new_thread_status->elem);
     /* Make a copy of FILE_NAME.
        Otherwise there's a race between the caller and load(). */
     fn_copy = palloc_get_page(0);
-    fn_copy_2 = palloc_get_page(0);
-    if (fn_copy == NULL || fn_copy_2 == NULL)
+    if (fn_copy == NULL){
+        free(new_thread_status);
         return TID_ERROR;
+    }
+
+    fn_copy_2 = palloc_get_page(0);
+
+    if (fn_copy_2 == NULL) {
+        palloc_free_page(fn_copy);
+        free(new_thread_status);
+        return TID_ERROR;
+    }
+
     strlcpy(fn_copy, file_name, PGSIZE);
     strlcpy(fn_copy_2, file_name, PGSIZE);
 
@@ -90,23 +99,26 @@ tid_t process_execute(const char *file_name) {
         tid = -1;
     }
 
-    if (tid == TID_ERROR)
+    if (tid == TID_ERROR){
         palloc_free_page(fn_copy);
+        palloc_free_page(fn_copy_2);
+        free(new_thread_status);
+    }
     else {
         sema_down(&(new_thread_status->exec_sem));
+        palloc_free_page(fn_copy_2);
         if (new_thread_status->exit_code == -1) {
-            list_remove(&(new_thread_status->elem));
             free(new_thread_status);
             return -1;
         }
     }
 
     if (!input.success) {
-        list_remove(&(new_thread_status->elem));
+        palloc_free_page(fn_copy);
         free(new_thread_status);
         return -1;
     }
-
+    list_push_back(&(current_thread->children), &new_thread_status->elem);
 
     return tid;
 }
@@ -141,12 +153,12 @@ start_process(void *file_name_) {
     cur_thread->p_status->pid = cur_thread->tid;
 
     sema_up(&(cur_thread->p_status->exec_sem));
+    palloc_free_page(file_name);
     if (!success) {
         finish_thread(cur_thread->p_status);
         cur_thread->p_status->exit_code = -1;
         /* If load failed, quit. */
         thread_exit();
-        palloc_free_page(file_name);
     }
     cur_thread->p_status->exit_code = cur_thread->tid;
 //    sema_up (&(cur_thread->p_status->exec_sem));
@@ -179,14 +191,15 @@ process_wait(tid_t child_tid UNUSED) {
     sema_down(&(child_thread->wait_sem));
 //    sema_down(&temporary);
     list_remove(&(child_thread->elem));
-    return child_thread->exit_code;
+    int exit_code  =child_thread->exit_code;
+    free(child_thread);
+    return exit_code;
 }
 
 
 void
 free_thread_file_descriptors(struct thread *cur) {
-    for (int i = 0; i < 128; i++)
-    {
+    for (int i = 0; i < MAX_FILE_DESCRIPTOR_COUNT; i++) {
         if (cur->t_fds[i] != NULL)
             file_close(cur->t_fds[i]);
     }
@@ -198,9 +211,9 @@ free_children_status(struct list *children) {
     struct list_elem *e;
     struct process_status *child;
 
-    for (e = list_begin (children); e != list_end (children); e = list_next (e))
-    {
-        child = list_entry (e, struct process_status, elem);
+    for (e = list_begin(children); e != list_end(children); e = list_next(e)) {
+        child = list_entry(e,
+        struct process_status, elem);
         free(child);
     }
 }
@@ -230,6 +243,7 @@ process_exit(void) {
         pagedir_destroy(pd);
     }
     file_close(cur->executed_file);
+//    palloc_free_page(cur);
 //    sema_up(&temporary);
 }
 
