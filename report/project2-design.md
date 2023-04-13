@@ -4,6 +4,7 @@
 
 > > نام، نام خانوادگی و ایمیل خود را در ادامه وارد کنید.
 
+
 > Hossein Aghaei h.aghaei.araei@gmail.com
 
 نام نام خانوادگی <email@domain.example>
@@ -47,6 +48,7 @@ struct thread
 
 > > پرسش دوم: به اختصار آن‌چه هنگام صدا زدن تابع `timer_sleep()` رخ می‌دهد و همچنین اثر `timer interrupt handler` را
 > > توضیح دهید.
+
 ### * timer_sleep:
 * the interrupt will be disabled first because when the time interrupt comes
 we can not acquire lock or put the interrupt handler to sleep.
