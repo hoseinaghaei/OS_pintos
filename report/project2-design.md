@@ -53,7 +53,7 @@ struct thread
 * the interrupt will be disabled first because when the time interrupt comes
 we can not acquire lock or put the interrupt handler to sleep.
 * we have the kernel tick since last booting in 'kernel_ticks' global variable, so we just add the user tick argument by this 
-  and save the result in waking_tick variable of the current thread.
+  and save the result in 'waking_tick' variable of the current thread.
 * add the current thread to 'slept_threads' list using 'list_insert_ordered' function.
 * call 'thread_block()' to block the current thread.
 * enable the interrupt.
@@ -64,20 +64,24 @@ we can not acquire lock or put the interrupt handler to sleep.
 * enable the interrupt
 
 > > پرسش سوم: مراحلی که برای کوتاه کردن زمان صرف‌شده در `timer interrupt handler` صرف می‌شود را نام ببرید.
-* we sort the 'slept_thread' by their tick, so we can remove threads in O(1)
+
+* we sort the 'slept_threads' by their tick, so we can remove threads in O(1)
 
 ### همگام‌سازی
 
 > > پرسش چهارم: هنگامی که چند ریسه به طور همزمان `timer_sleep()` را صدا می‌زنند، چگونه از `race condition` جلوگیری
 > > می‌شود؟
+
 * we disable the interrupt in the beginning so there is no concurrency at all.
 
 > > پرسش پنجم: هنگام صدا زدن `timer_sleep()` اگر یک وقفه ایجاد شود چگونه از `race condition` جلوگیری می‌شود؟
+
 * there would be no interrupt if we disable that.
 
 ### منطق
 
 > > پرسش ششم: چرا این طراحی را استفاده کردید؟ برتری طراحی فعلی خود را بر طراحی‌های دیگری که مدنظر داشته‌اید بیان کنید.
+
 * we could use lock for the 'slept_threads' modification, but it may fail when the timer interrupt comes,
  because the interrupt handler can go to sleep.
 * we could use a red-black tree for saving the slept threads but the removing time will increase to O(logN).
