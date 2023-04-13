@@ -52,7 +52,7 @@ struct thread
 ### * timer_sleep:
 * the interrupt will be disabled first because when the time interrupt comes
 we can not acquire lock or put the interrupt handler to sleep.
-* we have the kernel tick since last booting in 'kernel_ticks' global variable, so we just add the user tick argument by this 
+* we have the kernel tick since last booting in 'ticks' global variable, so we just add the user tick argument by this 
   and save the result in 'waking_tick' variable of the current thread.
 * add the current thread to 'slept_threads' list using 'list_insert_ordered' function.
 * call 'thread_block()' to block the current thread.
