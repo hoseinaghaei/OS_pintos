@@ -83,7 +83,7 @@ we can not acquire lock or put the interrupt handler to sleep.
 > > پرسش ششم: چرا این طراحی را استفاده کردید؟ برتری طراحی فعلی خود را بر طراحی‌های دیگری که مدنظر داشته‌اید بیان کنید.
 
 * we could use lock for the 'slept_threads' modification, but it may fail when the timer interrupt comes,
- because the interrupt handler can go to sleep.
+ because the interrupt handler can not go to sleep.
 * we could use a red-black tree for saving the slept threads but the removing time will increase to O(logN).
 
 ## زمان‌بند اولویت‌دار
