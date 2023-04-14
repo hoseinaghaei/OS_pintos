@@ -122,6 +122,30 @@ we can not acquire lock or put the interrupt handler to sleep.
 > > ‍‍ `program counter` ، ‍‍‍`stack pointer` و `registers`. بررسی کنید که این سه کجا و چگونه در `Pintos` ذخیره می‌شوند؟
 > > مطالعه ‍`switch.S` و تابع ‍`schedule` در فایل `thread.c` می‌تواند مفید باشد.
 
+If we take a deeper look in `schedule` function in `threads.c` which is mentioned below:
+```c
+static void
+schedule (void)
+{
+  struct thread *cur = running_thread ();
+  struct thread *next = next_thread_to_run ();
+  struct thread *prev = NULL;
+
+  ASSERT (intr_get_level () == INTR_OFF);
+  ASSERT (cur->status != THREAD_RUNNING);
+  ASSERT (is_thread (next));
+
+  if (cur != next)
+    prev = switch_threads (cur, next);
+  thread_schedule_tail (prev);
+}
+```
+First it sets three pointers to:
+- Current thread which is running
+- Next thread which we want to switch to
+- Another pointer with Null value to fill with current value's pointer after context switch which is returned by `switch_threads`function
+
+  
 > > پرسش نهم: وقتی یک ریسه‌ی هسته در ‍`Pintos` تابع `thread_exit` را صدا می‌زند، کجا و به چه ترتیبی صفحه شامل پشته
 > > و `TCB` یا `struct thread` آزاد می‌شود؟ چرا این حافظه را نمی‌توانیم به کمک صدازدن تابع ‍`palloc_free_page` داخل تابع
 > > ‍`thread_exit` آزاد کنیم؟
