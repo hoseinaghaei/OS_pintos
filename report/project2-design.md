@@ -191,8 +191,52 @@ then we return the value of the pointer to previous thread.(We now return values
 > > و `TCB` یا `struct thread` آزاد می‌شود؟ چرا این حافظه را نمی‌توانیم به کمک صدازدن تابع ‍`palloc_free_page` داخل تابع
 > > ‍`thread_exit` آزاد کنیم؟
 
+When `thread_exit` is called the context switch is not still completed, and freeing its space can be harmful. Because of that it is better to free its allocated space when the next thread is running.
+Here is the `thread_exit` function:
+```c
+void
+thread_exit (void)
+{
+  ASSERT (!intr_context ());
+
+#ifdef USERPROG
+  process_exit ();
+#endif
+
+  /* Remove thread from all threads list, set our status to dying,
+     and schedule another process.  That process will destroy us
+     when it calls thread_schedule_tail(). */
+  intr_disable ();
+  list_remove (&thread_current()->allelem);
+  thread_current ()->status = THREAD_DYING;
+  schedule ();
+  NOT_REACHED ();
+}
+```
+As we can see, `schedule` is called here to context switch between two threads after setting current thread's status as `THREAD_DYING` and removing it from thread list.
+then in schedule function in these lines:
+```c
+  if (cur != next)
+    prev = switch_threads (cur, next);
+  thread_schedule_tail (prev);
+```
+Context switch has been done and new thread is running these lines. So we can free previous thread's allocated space without any problems.
+If we check `thread_schedule_tail` function at the last of the function it does this:
+```c
+  if (prev != NULL && prev->status == THREAD_DYING && prev != initial_thread)
+    {
+      ASSERT (prev != cur);
+      palloc_free_page (prev);
+    }
+```
+which first checks `prev` is the same as `current thread` then it frees its allocated pages.
+
 > > پرسش دهم: زمانی که تابع ‍`thread_tick` توسط `timer interrupt handler` صدا زده می‌شود، در کدام پشته اجرا می‌شود؟
 
+Here is the `thread_tick` function:
+```c
+
+```
 > > پرسش یازدهم: یک پیاده‌سازی کاملا کاربردی و درست این پروژه را در نظر بگیرید که فقط یک مشکل درون تابع ‍`sema_up()`
 > > دارد. با توجه به نیازمندی‌های پروژه سمافورها(و سایر متغیرهای به‌هنگام‌سازی) باید ریسه‌های با اولویت بالاتر را بر
 > > ریسه‌های با اولویت پایین‌تر ترجیح دهند. با این حال پیاده‌سازی ریسه‌های با اولویت بالاتر را براساس اولویت
