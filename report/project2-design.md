@@ -7,7 +7,7 @@
 
 > Hossein Aghaei h.aghaei.araei@gmail.com
 
-نام نام خانوادگی <email@domain.example>
+> Armin DelgosarMaher arminmaher@gmail.com
 
 نام نام خانوادگی <email@domain.example>
 
