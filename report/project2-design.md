@@ -185,7 +185,7 @@ Later, it is time to load next thread in registers.
 We calculate the next thread's SP address using its offset(We know the new thread must have the similar schema with the previous thread which we have set its fields and saved in memory)
 then we add the calculated thread head pointer to `ecx` register then calculate the SP via the value inside `edx`.(We don't need to set `edx` again because offset for stack of each thread is same for all the threads), then we pop
 registers from SP to make it ready for run in CPU.
-then we return the value of the pointer to previous thread.
+then we return the value of the pointer to previous thread.(We now return values for each function is always stored in `eax` register and here when we return the function pointer to head of the previous thread is in `eax`)
 
 > > پرسش نهم: وقتی یک ریسه‌ی هسته در ‍`Pintos` تابع `thread_exit` را صدا می‌زند، کجا و به چه ترتیبی صفحه شامل پشته
 > > و `TCB` یا `struct thread` آزاد می‌شود؟ چرا این حافظه را نمی‌توانیم به کمک صدازدن تابع ‍`palloc_free_page` داخل تابع
