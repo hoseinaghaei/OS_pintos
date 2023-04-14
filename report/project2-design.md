@@ -145,7 +145,11 @@ First it sets three pointers to:
 - Next thread which we want to switch to
 - Another pointer with Null value to fill with current value's pointer after context switch which is returned by `switch_threads`function
 
-  
+Then after checking few conditions to make sure context switch can occur, if `cur != next`, then it will switch threads via `switch_threads` function.
+
+**The reason we check this condition is maybe we only have one thread in our thread management queue then we don't need to context switch between threads because nex thread is sam as current thread**
+ 
+
 > > پرسش نهم: وقتی یک ریسه‌ی هسته در ‍`Pintos` تابع `thread_exit` را صدا می‌زند، کجا و به چه ترتیبی صفحه شامل پشته
 > > و `TCB` یا `struct thread` آزاد می‌شود؟ چرا این حافظه را نمی‌توانیم به کمک صدازدن تابع ‍`palloc_free_page` داخل تابع
 > > ‍`thread_exit` آزاد کنیم؟
