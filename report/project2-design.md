@@ -155,32 +155,20 @@ On the other hand, we have `switch_threads` assembly function:
 .globl switch_threads
 .func switch_threads
 switch_threads:
-	# Save caller's register state.
-	#
-	# Note that the SVR4 ABI allows us to destroy %eax, %ecx, %edx,
-	# but requires us to preserve %ebx, %ebp, %esi, %edi.  See
-	# [SysV-ABI-386] pages 3-11 and 3-12 for details.
-	#
-	# This stack frame must match the one set up by thread_create()
-	# in size.
 	pushl %ebx
 	pushl %ebp
 	pushl %esi
 	pushl %edi
 
-	# Get offsetof (struct thread, stack).
 .globl thread_stack_ofs
 	mov thread_stack_ofs, %edx
 
-	# Save current stack pointer to old thread's stack, if any.
 	movl SWITCH_CUR(%esp), %eax
 	movl %esp, (%eax,%edx,1)
 
-	# Restore stack pointer from new thread's stack.
 	movl SWITCH_NEXT(%esp), %ecx
 	movl (%ecx,%edx,1), %esp
 
-	# Restore caller's register state.
 	popl %edi
 	popl %esi
 	popl %ebp
@@ -188,6 +176,16 @@ switch_threads:
         ret
 .endfunc
 ```
+
+As we can see, when the function above is called, its input arguments and a space for its return value is being pushed to stack(
+pintos stack grows downwards) then it pushes CPU's main registers to current thread's stack later it sets current thread's stack offset in `edx` register
+and it sets SP itself including offset(which stack pointer is calculated using `SWITCH_CUR` then it should be set in the correct pinter to stack in thread data structure) inside `(%eax,%edx,1)` address.
+
+Later, it is time to load next thread in registers.
+We calculate the next thread's SP address using its offset(We know the new thread must have the similar schema with the previous thread which we have set its fields and saved in memory)
+then we add the calculated thread head pointer to `ecx` register then calculate the SP via the value inside `edx`.(We don't need to set `edx` again because offset for stack of each thread is same for all the threads), then we pop
+registers from SP to make it ready for run in CPU.
+then we return the value of the pointer to previous thread.
 
 > > پرسش نهم: وقتی یک ریسه‌ی هسته در ‍`Pintos` تابع `thread_exit` را صدا می‌زند، کجا و به چه ترتیبی صفحه شامل پشته
 > > و `TCB` یا `struct thread` آزاد می‌شود؟ چرا این حافظه را نمی‌توانیم به کمک صدازدن تابع ‍`palloc_free_page` داخل تابع
