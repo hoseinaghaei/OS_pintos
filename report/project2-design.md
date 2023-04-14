@@ -147,8 +147,47 @@ First it sets three pointers to:
 
 Then after checking few conditions to make sure context switch can occur, if `cur != next`, then it will switch threads via `switch_threads` function.
 
-**The reason we check this condition is maybe we only have one thread in our thread management queue then we don't need to context switch between threads because nex thread is sam as current thread**
+**The reason we check this condition is maybe we only have one thread in our thread management queue then we don't need to context switch between threads because next thread is same as current thread**
  
+On the other hand, we have `switch_threads` assembly function:
+
+```asm
+.globl switch_threads
+.func switch_threads
+switch_threads:
+	# Save caller's register state.
+	#
+	# Note that the SVR4 ABI allows us to destroy %eax, %ecx, %edx,
+	# but requires us to preserve %ebx, %ebp, %esi, %edi.  See
+	# [SysV-ABI-386] pages 3-11 and 3-12 for details.
+	#
+	# This stack frame must match the one set up by thread_create()
+	# in size.
+	pushl %ebx
+	pushl %ebp
+	pushl %esi
+	pushl %edi
+
+	# Get offsetof (struct thread, stack).
+.globl thread_stack_ofs
+	mov thread_stack_ofs, %edx
+
+	# Save current stack pointer to old thread's stack, if any.
+	movl SWITCH_CUR(%esp), %eax
+	movl %esp, (%eax,%edx,1)
+
+	# Restore stack pointer from new thread's stack.
+	movl SWITCH_NEXT(%esp), %ecx
+	movl (%ecx,%edx,1), %esp
+
+	# Restore caller's register state.
+	popl %edi
+	popl %esi
+	popl %ebp
+	popl %ebx
+        ret
+.endfunc
+```
 
 > > پرسش نهم: وقتی یک ریسه‌ی هسته در ‍`Pintos` تابع `thread_exit` را صدا می‌زند، کجا و به چه ترتیبی صفحه شامل پشته
 > > و `TCB` یا `struct thread` آزاد می‌شود؟ چرا این حافظه را نمی‌توانیم به کمک صدازدن تابع ‍`palloc_free_page` داخل تابع
