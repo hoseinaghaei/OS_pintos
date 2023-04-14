@@ -257,6 +257,10 @@ thread_tick (void)
     intr_yield_on_return ();
 }
 ```
+
+As we know this function is being calls per `tick` which is an external interrupt, and all interrupts sould be handled in kernel mode.
+So, this interrupt will be handled by kernel thread as well.
+
 > > پرسش یازدهم: یک پیاده‌سازی کاملا کاربردی و درست این پروژه را در نظر بگیرید که فقط یک مشکل درون تابع ‍`sema_up()`
 > > دارد. با توجه به نیازمندی‌های پروژه سمافورها(و سایر متغیرهای به‌هنگام‌سازی) باید ریسه‌های با اولویت بالاتر را بر
 > > ریسه‌های با اولویت پایین‌تر ترجیح دهند. با این حال پیاده‌سازی ریسه‌های با اولویت بالاتر را براساس اولویت
