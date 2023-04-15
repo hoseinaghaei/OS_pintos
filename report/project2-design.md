@@ -9,7 +9,7 @@
 
 > Armin DelgosarMaher arminmaher@gmail.com
 
-نام نام خانوادگی <email@domain.example>
+> Seyyed Alireza Ghazanfari alireza79.ghazanfari@gmail.com
 
 نام نام خانوادگی <email@domain.example>
 
@@ -100,6 +100,14 @@ we can not acquire lock or put the interrupt handler to sleep.
 
 > > پرسش سوم: چگونه مطمئن می‌شوید که ریسه با بیشترین اولویت که منتظر یک قفل، سمافور یا `condition variable` است زودتر از
 > > همه بیدار می‌شود؟
+
+a part of `sema_up` function in `synch.c` is:
+```c
+thread_unblock (list_entry (list_pop_front (&sema->waiters),
+                                struct thread, elem));
+```
+this is line 117 of this file and as a part of it you can see that we will pop a waiter from `sema waiters`. So here is the exact point which we should change it to be confirmed about highest priority thread taking the lock. We'll put our new policy instead of `list_pop_front` function and for acheiving this target we define a function `pop_max_priority_thread`. This function will pop a thread from waiters list with highest priority so we will replace it in the code.
+
 
 > > پرسش چهارم: مراحلی که هنگام صدازدن `lock_acquire()` منجر به `priority donation` می‌شوند را نام ببرید. دونیشن‌های تو
 > > در تو چگونه مدیریت می‌شوند؟
