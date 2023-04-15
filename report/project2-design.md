@@ -121,7 +121,7 @@ For answering to this question we have to divide it to two sub-questions.
 
 - The management of this process is like managing simple donation when you are donating on a lock you will change the `dynamic_priority` of its holder so this holder as a thread is in othres' locks waiters or holders so we should run donation on those too to change the locks' priority and update related threads' `dynamic_priority`.
 
-* steps
+>>> steps
 - first of all we will disable interrupts
 - next check these conditions and if does not pass wait
 ```c
@@ -154,7 +154,7 @@ lock_release (struct lock *lock)
 so as you can see we are doing two important work in this code. First of all we are putting `NULL` in holder and second point is that we are calling `sema_up()`.
 
 So first we know that handling this item which the thread with highest priority who is waiting for this lock get it is handled by `sema_up`. when we want to give a lock to a thread we should update its `dynamic_priority`.
-* steps
+>>> steps
 - here again like the last part for making this part of code blocking we will disable interrupts.
 - first we check that lock exists or not
 - check that lock's holder is current thread or not
@@ -162,12 +162,17 @@ So first we know that handling this item which the thread with highest priority 
 - then call `sema_up`
 - if the thread has just this lock in `acquired_locks_list` then we should pop it from that list and put `base_priority` into `dynamic_priority`.
 - else we will put max of locks' priorities to `dynamic_priority`
+- and `sema_up` will give the lock to highest priority. (as we had in last questions)
 - at the end we'll enable interrupts.
 
 ### همگام‌سازی
 
 > > پرسش ششم: یک شرایط احتمالی برای رخداد `race condition` در `thread_set_priority` را بیان کنید و توضیح دهید که چگونه
 > > پیاده‌سازی شما از رخداد آن جلوگیری می‌کند. آیا می‌توانید با استفاده از یک قفل از رخداد آن جلوگیری کنید؟
+
+in the last part when we want to update thread's `dynamic_priority`, maybe thread itself has some changes in `base_priority` so because of that it needs to update its `dynamic_priority` field too with different value of course.
+so in this situatation because of disabling interrupts `race condition` wont happen.
+yes i think we can put lock inside of `thread_set_priority` to handle this problem too (with out noticing to interrupt disabling).
 
 ### منطق
 
