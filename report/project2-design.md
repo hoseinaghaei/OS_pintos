@@ -93,6 +93,36 @@ we can not acquire lock or put the interrupt handler to sleep.
 > > پرسش اول: تعریف `struct`های جدید، `struct`های تغییر داده شده، متغیرهای گلوبال یا استاتیک، `typedef`ها
 > > یا `enumeration`ها را در اینجا آورده و برای هریک در ۲۵ کلمه یا کمتر توضیح بنویسید.
 
+`priority` field is obvious. It is a number that defines priority of a thread in this system.
+`dynamic_priority` is an int field. This is the priority of thread that is initialized by `priority` and at last when we are closing the thread should be equal to `priority`. But the system can change it for scheduling and handling donations. `acquired_locks_list` is a list of locks which are in a thread's hands. We will use this list for checking that now this thread should set its `dynamic_priority` equals to `priority` or not. We will discuss about it later. `waited_locks_for` is a list of locks that are not in thread's hands. We'll use this list for nested donations.
+
+```c
+struct thread
+  {
+    int priority;                       /* Priority. */
+    int dynamic_priority;              /* changable priority */
+    struct list_elem acquired_locks_list;    /* list of locks which this thread acquired */
+    struct list_elem waited_locks_for;       /* list of locks which this thread is in their waiters list */
+  };
+```
+`MAX_NESTED_DONATION_DEPTH` is a constant that we added for some design decisions which will be explained more in next parts. `INTIAL_LOCK_PRIORITY` is a constant too. It's for initializing priorities when no thread has not acquired them.
+
+```c
+#define MAX_NESTED_DONATION_DEPTH 20
+#define INITIAL_LOCK_PRIORITY -1
+```
+In `lcok`, we added a `priority` which is the max of its waiters' and holder's priority.
+
+```c
+/* Lock. */
+struct lock
+  {
+    struct thread *holder;      /* Thread holding lock (for debugging). */
+    int priority;               /* max priority of waiters' priority and holder's priority */
+    struct semaphore semaphore; /* Binary semaphore controlling access. */
+  };
+```
+
 > > پرسش دوم: داده‌ساختارهایی که برای اجرای `priority donation` استفاده شده‌است را توضیح دهید. (می‌توانید تصویر نیز قرار
 > > دهید)
 
@@ -120,6 +150,8 @@ For answering to this question we have to divide it to two sub-questions.
 - And second question about nested donations. First of all we will define a constant `NESTED_DONATION_MAX_DEPTH` to specify a limited area for nested donations to skape from infinite loops or same problems. 
 
 - The management of this process is like managing simple donation when you are donating on a lock you will change the `dynamic_priority` of its holder so this holder as a thread is in othres' locks waiters or holders so we should run donation on those too to change the locks' priority and update related threads' `dynamic_priority`.
+
+- we added a list to thread data structure called `waited_locks_for`. This is list of all locks that this thread is waiting for them. This list is added to help us to manage nested donation better. we should update this list in `sema_up` and `sema_down` but the most important point is that when you want to update `dynamic_priority` of a thread you should call `donation_checker` on each lock of this list for that thread to update holders' priorities of those locks if it is needed.
 
 >>> steps
 - first of all we will disable interrupts
@@ -178,6 +210,7 @@ yes i think we can put lock inside of `thread_set_priority` to handle this probl
 
 > > پرسش هفتم: چرا این طراحی را استفاده کردید؟ برتری طراحی فعلی خود را بر طراحی‌های دیگری که مدنظر داشته‌اید بیان کنید.
 
+we used to design based on simplicity more than anything else because pintos codes have more than normal complexity so we tried to prevent adding more complexity. yes we could do sth such as saving ...
 ## سوالات افزون بر طراحی
 
 > > پرسش هشتم: در کلاس سه صفت مهم ریسه‌ها که سیستم عامل هنگامی که ریسه درحال اجرا نیست را ذخیره می‌کند، بررسی کردیم:
