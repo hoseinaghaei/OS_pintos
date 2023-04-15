@@ -216,7 +216,9 @@ yes i think we can put lock inside of `thread_set_priority` to handle this probl
 
 > > پرسش هفتم: چرا این طراحی را استفاده کردید؟ برتری طراحی فعلی خود را بر طراحی‌های دیگری که مدنظر داشته‌اید بیان کنید.
 
-we used to design based on simplicity more than anything else because pintos codes have more than normal complexity so we tried to prevent adding more complexity. yes we could do sth such as saving ...
+We had some another ideas that had some differences from what is now using on different parts of designing for example one idea was keep all priorities that are assigned in a stack or a list in thread structure to in release time can use this stack with pop the last priority and achieving to the older priority but our design is now better than this idea because it's so simpler and faster and does not need a stack for each thread. In each decision we tried to choose the optimal, fastest and simplest way for solving the problem.
+And of course it needs less memory to another ideas which we had.
+
 ## سوالات افزون بر طراحی
 
 > > پرسش هشتم: در کلاس سه صفت مهم ریسه‌ها که سیستم عامل هنگامی که ریسه درحال اجرا نیست را ذخیره می‌کند، بررسی کردیم:
