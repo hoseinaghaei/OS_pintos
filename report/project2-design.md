@@ -112,8 +112,57 @@ this is line 117 of this file and as a part of it you can see that we will pop a
 > > پرسش چهارم: مراحلی که هنگام صدازدن `lock_acquire()` منجر به `priority donation` می‌شوند را نام ببرید. دونیشن‌های تو
 > > در تو چگونه مدیریت می‌شوند؟
 
+For answering to this question we have to divide it to two sub-questions. 
+- First one is about `lock_acquire()` and its steps when having `priority donation`. As thread 1, I'll call this function for having the lock. Assume that this lock has a full list of waiters and some thread has it now too. Thread 1 has a priority and wants to get the lock with that. So for `priority donation` we should compare incoming thread's priority with the lock's priority. If the incoming thread's priority is higher than the othre one we should change the lock's priority and the lock holder's priority to thread 1's priority.
+
+- The point is that for comparing and setting locks in threads we need to keep the origin thread's priority from its dynamic priority so comparing and setting on last item is for `dynamic priorities`.
+
+- And second question about nested donations. First of all we will define a constant `NESTED_DONATION_MAX_DEPTH` to specify a limited area for nested donations to skape from infinite loops or same problems. 
+
+- The management of this process is like managing simple donation when you are donating on a lock you will change the `dynamic_priority` of its holder so this holder as a thread is in othres' locks waiters or holders so we should run donation on those too to change the locks' priority and update related threads' `dynamic_priority`.
+
+* steps
+- first of all we will disable interrupts
+- next check these conditions and if does not pass wait
+```c
+  ASSERT (lock != NULL);
+  ASSERT (!intr_context ());
+  ASSERT (!lock_held_by_current_thread (lock));
+```
+- after that we will call `sema_up`
+- if no one has this lock the current thread will get it.
+- if this lock has a holder in first condition our priority is less than the holder's so we just add current thread to the list of waiters
+- if current thread's priority is higher than lock's priority then we will donate priorities
+- we'll set lock holder to current thread too.
+- we'll enable interrupts.
+
 > > پرسش پنجم: مراحلی که هنگام صدا زدن `lock_release()` روی یک قفل که یک ریسه با اولویت بالا منتظر آن است، رخ می‌دهد را
 > > نام ببرید.
+
+this is the raw code of this function
+```c
+void
+lock_release (struct lock *lock)
+{
+  ASSERT (lock != NULL);
+  ASSERT (lock_held_by_current_thread (lock));
+
+  lock->holder = NULL;
+  sema_up (&lock->semaphore);
+}
+```
+so as you can see we are doing two important work in this code. First of all we are putting `NULL` in holder and second point is that we are calling `sema_up()`.
+
+So first we know that handling this item which the thread with highest priority who is waiting for this lock get it is handled by `sema_up`. when we want to give a lock to a thread we should update its `dynamic_priority`.
+* steps
+- here again like the last part for making this part of code blocking we will disable interrupts.
+- first we check that lock exists or not
+- check that lock's holder is current thread or not
+- then set lock's holder `NULL`
+- then call `sema_up`
+- if the thread has just this lock in `acquired_locks_list` then we should pop it from that list and put `base_priority` into `dynamic_priority`.
+- else we will put max of locks' priorities to `dynamic_priority`
+- at the end we'll enable interrupts.
 
 ### همگام‌سازی
 
