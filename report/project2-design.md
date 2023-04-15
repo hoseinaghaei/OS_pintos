@@ -126,6 +126,12 @@ struct lock
 > > پرسش دوم: داده‌ساختارهایی که برای اجرای `priority donation` استفاده شده‌است را توضیح دهید. (می‌توانید تصویر نیز قرار
 > > دهید)
 
+All the structures and constants which are defined in the last question will be used in the structure of priority donation management system.
+because of that we want to review these structures in priority donation progress it's better to have an example in this area.
+imagine we have thread1 that holds lock1 and thread2 wants to acquire lock1. thread2's priority is more than thread1's so first of all thread1 and thread2 have their base priorities which are acquiring with them and these numbers are in `priority` field. On the other hand thread1 is the holder of lock1 so `holder` field of lock1 is pointing to thread1 and lock1 is inserted into thread1's `acquired_locks_list`. But thread2 is added to `waiters` list of lock1 and lock1 is added to thread2's `waited_locks_for`.
+when lock1 was created, it has no holder and used `INITIAL_LOCK_PRIORITY` to initial its priority field. But then thread1 came and put its `dynamic_priority` into this field of course at first with conditions of this example thread1's `dynamic_priority` is equal to its `priority`.
+then thread2 came. Now we have priority donation situation and we should put thread2's `dynamic_priority` into lock1's `priority` and update thread1's `dynamic_priority` to it too. So the reason of existing this field is to keep the changes of thread priority over donation wihtout loosing base priority. At result, you can see that for a simple example of priority donation we could show each of these added items and their existance's goals.
+
 ### الگوریتم
 
 > > پرسش سوم: چگونه مطمئن می‌شوید که ریسه با بیشترین اولویت که منتظر یک قفل، سمافور یا `condition variable` است زودتر از
