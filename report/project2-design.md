@@ -11,7 +11,7 @@
 
 > Seyyed Alireza Ghazanfari alireza79.ghazanfari@gmail.com
 
-نام نام خانوادگی <email@domain.example>
+> AmirMahdi Kousheshi amk_amir82@yahoo.com
 
 ## مقدمه
 
@@ -373,6 +373,45 @@ So, this interrupt will be handled by kernel thread as well.
 > > متن چاپ شده را با خروجی مورد انتظار مقایسه کنیم و اگر متفاوت بودند، وجود مشکل در پیاده‌سازی اثبات می‌شود. شما باید
 > > توضیحی درباره این که تست چگونه کار می‌کند، خروجی مورد انتظار و خروجی واقعی آن فراهم کنید.
 
+when we use `base priority` there will be a mistake. The threads that run based on `base priority` be will different from `effective priority`. If there will be no `priority donation`, we will face something like below:
+
+```c
+void main(){
+1 lock_init();
+2 sema_down(lock->sema);
+3 set_priority(5);
+4 threade_create(A,10);
+5 thread_yield();
+6 threade_create(B,15);
+7 thread_yield();
+8 threade_create(C,20);
+9 thread_yield();
+10 sema_up(lock->sema);
+}
+
+void A(){
+lock.acquire();
+sema_down(lock->sema);
+printf("A");
+sema_up(lock->sema);
+lock.release();
+}
+
+void B(){
+sema_down(lock->sema);
+printf("B");
+sema_up(lock->sema);
+}
+
+void C(){
+lock.acquire();
+printf("C");
+lock.release();
+}
+```
+
+The expected result would be: `ABC`, why? Cause at first the thread `A` would be run an will acquire the lock and semaphore will be down. So line 5 would be run and then thread `B` will be create. In this thread at first the semaphore will be down. So there is a priority donation to thread `A` that it could be run and up the semaphore and release the lock. So it will be print A and then the sema_up called the thread B now is on and will print B and then line 8 will be run and thread `C` will be create and print C. But in base priority, the semaphote in thread B never up before, so it will block and line 8 will be run. So in this case the thread `C` Will be run but it needs the lock but the lock is in the hand of thread `A`. So all threads all now block and main thread will be run and line 10 will be run so the smaphore will be up. In this case thread B will be continue so it print B and then the sema also uped in thread B so thread A will be continue and print A and then the sema is up and lock will be released si the thread `C` acquire the lock and print C and then release the lock.
+
 ## سوالات نظرسنجی
 
 پاسخ به این سوالات دلخواه است، اما به ما برای بهبود این درس در ادامه کمک خواهد کرد. نظرات خود را آزادانه به ما
@@ -381,18 +420,32 @@ So, this interrupt will be handled by kernel thread as well.
 
 > > به نظر شما، این تمرین گروهی، یا هر کدام از سه وظیفه آن، از نظر دشواری در چه سطحی بود؟ خیلی سخت یا خیلی آسان؟
 
+خیلی آسان
+
 > > چه مدت زمانی را صرف انجام این تمرین کردید؟ نسبتا زیاد یا خیلی کم؟
+
+کمتر از ۱۰ دقیقه
 
 > > آیا بعد از کار بر روی یک بخش خاص از این تمرین (هر بخشی)، این احساس در شما به وجود آمد که اکنون یک دید بهتر نسبت به
 > > برخی جنبه‌های سیستم عامل دارید؟
 
+نه اصلا
+
 > > آیا نکته یا راهنمایی خاصی وجود دارد که بهتر است ما آنها را به توضیحات این تمرین اضافه کنیم تا به دانشجویان ترم های
 > > آتی در حل مسائل کمک کند؟
 
+یک دنیا ممنون از زحماتتون
+
 > > متقابلا، آیا راهنمایی نادرستی که منجر به گمراهی شما شود وجود داشته است؟
 
+خیر اصلا
+
 > > آیا پیشنهادی در مورد دستیاران آموزشی درس، برای همکاری موثرتر با دانشجویان دارید؟
+
+دارم بله
 
 این پیشنهادات میتوانند هم برای تمرین‌های گروهی بعدی همین ترم و هم برای ترم‌های آینده باشد.
 
 > > آیا حرف دیگری دارید؟
+
+بله
