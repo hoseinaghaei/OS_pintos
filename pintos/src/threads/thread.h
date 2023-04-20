@@ -16,19 +16,10 @@ enum thread_status
     THREAD_DYING        /* About to be destroyed. */
   };
 
-typedef int fid_t;
-struct
-file_descriptor
-{
-    struct file *file;
-    fid_t file_id;
-};
-
 /* Thread identifier type.
    You can redefine this to whatever type you like. */
 typedef int tid_t;
 #define TID_ERROR ((tid_t) -1)          /* Error value for tid_t. */
-#define MAX_FILE_DESCRIPTOR_COUNT 128
 
 /* Thread priorities. */
 #define PRI_MIN 0                       /* Lowest priority. */
@@ -100,15 +91,9 @@ struct thread
     uint8_t *stack;                     /* Saved stack pointer. */
     int priority;                       /* Priority. */
     struct list_elem allelem;           /* List element for all threads list. */
-    struct file *t_fds[MAX_FILE_DESCRIPTOR_COUNT];
-//    struct file_descriptor* file_descriptor_list[MAX_FILE_DESCRIPTOR_COUNT];
-    struct file *exec_file;
+
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
-
-    struct process_status *p_status;
-    struct list children;
-    struct file *executed_file;
 
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
@@ -118,23 +103,6 @@ struct thread
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
   };
-
-struct process_status
-   {
-      int pid;
-      int exit_code;
-      struct list_elem elem;
-      struct semaphore wait_sem;
-      struct semaphore exec_sem;
-      struct lock rw_lock;
-   };
-
-struct thread_input
-   {
-      void *fname;
-      struct process_status *status;
-      bool success;
-   };
 
 /* If false (default), use round-robin scheduler.
    If true, use multi-level feedback queue scheduler.
