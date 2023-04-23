@@ -270,6 +270,14 @@ thread_unblock (struct thread *t)
   intr_set_level (old_level);
 }
 
+
+int
+thread_compare_ticks(const struct list_elem *elem1, const struct list_elem *elem2, void *aux) {
+    struct thread t1 = list_entry(elem1, struct thread, elem);
+    struct thread t2 = list_entry(elem2, struct thread, elem);
+    return t1.waking_tick <= t2.waking_tick;
+}
+
 void
 thread_sleep(int64_t tick) {
     enum intr_level old_level = intr_disable();
@@ -279,13 +287,6 @@ thread_sleep(int64_t tick) {
     thread_block();
 
     intr_set_level(old_level);
-}
-
-int
-thread_compare_ticks(const struct list_elem *elem1, const struct list_elem *elem2, void *aux) {
-    struct thread t1 = list_entry(elem1, struct thread, elem);
-    struct thread t2 = list_entry(elem2, struct thread, elem);
-    return t1.waking_tick <= t2.waking_tick;
 }
 
 /* Returns the name of the running thread. */
