@@ -24,6 +24,11 @@
    that are ready to run but not actually running. */
 static struct list ready_list;
 
+/* List of threads which has been put to sleep for some ticks in ascending order
+ * based on tick that must be woken up.*/
+static struct list slept_threads;
+
+
 /* List of all processes.  Processes are added to this list
    when they are first scheduled and removed when they exit. */
 static struct list all_list;
@@ -87,17 +92,18 @@ static tid_t allocate_tid (void);
 void
 thread_init (void)
 {
-  ASSERT (intr_get_level () == INTR_OFF);
+    ASSERT(intr_get_level() == INTR_OFF);
 
-  lock_init (&tid_lock);
-  list_init (&ready_list);
-  list_init (&all_list);
+    lock_init(&tid_lock);
+    list_init(&ready_list);
+    list_init(&all_list);
+    list_init(&slept_threads);
 
-  /* Set up a thread structure for the running thread. */
-  initial_thread = running_thread ();
-  init_thread (initial_thread, "main", PRI_DEFAULT);
-  initial_thread->status = THREAD_RUNNING;
-  initial_thread->tid = allocate_tid ();
+    /* Set up a thread structure for the running thread. */
+    initial_thread = running_thread();
+    init_thread(initial_thread, "main", PRI_DEFAULT);
+    initial_thread->status = THREAD_RUNNING;
+    initial_thread->tid = allocate_tid();
 }
 
 /* Starts preemptive thread scheduling by enabling interrupts.
@@ -117,26 +123,48 @@ thread_start (void)
   sema_down (&idle_started);
 }
 
+
+void
+remove_reached_tick_threads () {
+    enum intr_level old_level = intr_disable();
+
+    struct list_elem *e;
+    struct thread *thread;
+    int64_t timer_tick = timer_ticks();
+    for (e = list_begin(&slept_threads); e != list_end(&slept_threads); e = list_next(e)) {
+        thread = list_entry(e, struct thread, elem);
+        if (thread->waking_tick <= timer_tick) {
+            e = list_prev(e);
+            list_remove(list_next(e));
+            thread_unblock(thread);
+        } else {
+            break;
+        }
+    }
+    intr_set_level(old_level);
+}
+
 /* Called by the timer interrupt handler at each timer tick.
    Thus, this function runs in an external interrupt context. */
 void
-thread_tick (void)
-{
-  struct thread *t = thread_current ();
+thread_tick (void) {
+    struct thread *t = thread_current();
 
-  /* Update statistics. */
-  if (t == idle_thread)
-    idle_ticks++;
+    /* Update statistics. */
+    if (t == idle_thread)
+        idle_ticks++;
 #ifdef USERPROG
-  else if (t->pagedir != NULL)
-    user_ticks++;
+        else if (t->pagedir != NULL)
+          user_ticks++;
 #endif
-  else
-    kernel_ticks++;
+    else
+        kernel_ticks++;
 
-  /* Enforce preemption. */
-  if (++thread_ticks >= TIME_SLICE)
-    intr_yield_on_return ();
+    /* Enforce preemption. */
+    if (++thread_ticks >= TIME_SLICE)
+        intr_yield_on_return();
+    if (!list_empty(&slept_threads))
+        remove_reached_tick_threads();
 }
 
 /* Prints thread statistics. */
@@ -240,6 +268,24 @@ thread_unblock (struct thread *t)
   list_push_back (&ready_list, &t->elem);
   t->status = THREAD_READY;
   intr_set_level (old_level);
+}
+
+void
+thread_sleep(int64_t tick) {
+    enum intr_level old_level = intr_disable();
+    struct thread *current_thread = thread_current();
+    current_thread->waking_tick = timer_ticks() + tick;
+    list_insert_ordered(&slept_threads, &current_thread->elem, thread_compare_ticks, NULL);
+    thread_block();
+
+    intr_set_level(old_level);
+}
+
+int
+thread_compare_ticks(const struct list_elem *elem1, const struct list_elem *elem2, void *aux) {
+    struct thread t1 = list_entry(elem1, struct thread, elem);
+    struct thread t2 = list_entry(elem2, struct thread, elem);
+    return t1.waking_tick <= t2.waking_tick;
 }
 
 /* Returns the name of the running thread. */
