@@ -273,10 +273,10 @@ thread_unblock (struct thread *t)
 
 
 int
-thread_compare_ticks(const struct list_elem *elem1, const struct list_elem *elem2, void *aux) {
-    struct thread t1 = list_entry(elem1, struct thread, elem);
-    struct thread t2 = list_entry(elem2, struct thread, elem);
-    return t1.waking_tick <= t2.waking_tick;
+thread_compare_ticks(const struct list_elem *elem1, const struct list_elem *elem2, void *aux UNUSED) {
+    struct thread *t1 = list_entry(elem1, struct thread, elem);
+    struct thread *t2 = list_entry(elem2, struct thread, elem);
+    return t1->waking_tick <= t2->waking_tick;
 }
 
 void
