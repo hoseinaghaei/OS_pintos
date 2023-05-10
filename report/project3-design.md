@@ -135,6 +135,8 @@ The answer is as same as previous question. Two processes can not access a singl
 
 >>‫ توضیح دهید همگام سازی شما چگونه "عدالت" را برقرار می‌کند. فایل سیستمی "عادل" است که‫ خواننده‌های اطلاعات به صورت ناسازگار نویسنده‌های اطلاعات را مسدود نکنند و برعکس. بدین ترتیب‫ اگر تعدادی بسیار زیاد پردازه‌هایی که از یک فایل می‌خوانند نمی‌توانند تا ابد مانع نوشده شدن‫ اطلاعات توسط یک پردازه‌ی دیگر شوند و برعکس.
 
+It depends on our queuing algorithm. But even if it is even random access the fairness will occur then. But definitely all these are being handled in the kernel side and it can prevent `starvation` on a single file. 
+
 منطق طراحی
 ----------
 
