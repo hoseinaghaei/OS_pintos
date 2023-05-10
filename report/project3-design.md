@@ -7,6 +7,7 @@
 >>‫نام و آدرس پست الکترونیکی اعضای گروه را در این قسمت بنویسید.
 
 * Seyyed Alireza Ghazanfari alireza79.ghazanfari@gmail.com
+* Armin DelgosarMaher arminmaher@gmail.com
 
 مقدمات
 ----------
