@@ -142,6 +142,9 @@ It depends on our queuing algorithm. But even if it is even random access the fa
 
 >>‫ آیا ساختار `inode` شما از طبقه‌بندی چند سطحه پشتیبانی می‌کند؟ اگر بله، دلیل خود را برای‫ انتخاب این ترکیب خاص از بلوک‌های مستقیم، غیر مستقیم و غیر مستقیم دوطرفه توضیح دهید.‌‫ اگر خیر، دلیل خود برای انتخاب ساختاری غیر از طبقه‌بندی چند سطحه و مزایا و معایب ساختار‫ مورد استفاده خود نسبت به طبقه‌بندی چند سطحه را توضیح دهید.
 
+Yes, we have used multi-level structure. Because it is flexible for small and big files and even if their size changes in the system it can be handled.
+We have 123 `direct` blocks which can be accessed faster than indirect ones. So we can handle files in small size ranges in a pretty easy way. For larger files we go through in direct blocks from which we have 128 units. and for even larger file we can use 2/step redirecting which is more suitable for larger files. We have 128*128 units for them.
+
 زیرمسیرها
 ============
 
