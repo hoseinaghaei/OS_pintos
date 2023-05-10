@@ -8,6 +8,7 @@
 
 * Seyyed Alireza Ghazanfari alireza79.ghazanfari@gmail.com
 * Armin DelgosarMaher arminmaher@gmail.com
+* AmirMahdi Kousheshi amk_amir82@yahoo.com
 
 مقدمات
 ----------
@@ -153,20 +154,54 @@ We have 123 `direct` blocks which can be accessed faster than indirect ones. So 
 
 >>‫ در این قسمت تعریف هر یک از `struct` ها، اعضای `struct` ها، متغیرهای سراسری‫ یا ایستا، `typedef` ها یا `enum` هایی که ایجاد کرده‌اید یا تغییر داده‌اید را بنویسید و‫ دلیل هر کدام را در حداکثر ۲۵ کلمه توضیح دهید.
 
+```c
+struct dir {
+    struct lock dir_lock;
+};
+
+struct thread
+{
+    struct dir *curr_dir;
+};
+
+struct inode_disk
+{
+    bool is_dir;
+}
+
+struct inode
+{
+    bool is_deleted;
+    bool is_open_by_thread;
+}
+
+```
+In `struct dir` we add a lock to this struct so we can made it thread safe and do some operations like deleting or the other things. Also in `struct thread` we add a current directory that a thread is doing it jobs and working with file descriptors. In `struct inode_disk` we added a `is_dir` boolean to check if the sector of block is for a directory or not. In `struct inode` we also add `is_deleted` and `is_open_by_thread` to check the race condition that may be create during working with inodes.
+
+
+
 الگوریتم‌ها
 -----------
 
 >>‫ کد خود را برای طی کردن یک مسیر گرفته‌شده از کاربر را توضیح دهید.‫ آیا عبور از مسیرهای absolute و relative تفاوتی دارد؟
+
+If we have the absolute path, so it is easy. We can easily get the path and find the destination to file or directory with the methods that they are already in the code. If the path would be relative, so we added a `curr_dir` in thread that would help us to concat this working directory to our relative path and made an absolute path and do the same thing as we tell first.
+
 
 همگام سازی
 -------------
 
 >>‫ چگونه از رخ دادن race-condition در مورد دایرکتوری ها پیشگیری می‌کنید؟‫ برای مثال اگر دو درخواست موازی برای حذف یک فایل وجود داشته باشد و ‫ تنها یکی از آنها باید موفق شود یا مثلاً دو ریسه موازی بخواهند فایلی‫ یک اسم در یک مسیر ایجاد کنند و مانند آن.‫ آیا پیاده سازی شما اجازه می‌دهد مسیری که CWD یک ریسه شده یا پردازه‌ای‫ از آن استفاده می‌کند حذف شود؟ اگر بله، عملیات فایل سیستم بعدی روی آن‫ دایرکتوری چه نتیجه‌ای می‌دهند؟ اگر نه، چطور جلوی آن را می‌گیرید؟
 
+In `struct inode` thee is a lock that could help up to prevent the race condition.
+We will deleted it. When a directory wants to be delete, so at first we check the the parameter `is_open_by_thread` and then we can deleted it. If it was opend by a thread, so we set the `is_deleted` true and when the `is_open_by_thread` will be false so we delete the directory.
+
 منطق طراحی
 -----------------
 
 >>‫ توضیح دهید چرا تصمیم گرفتید CWD یک پردازه را به شکلی که طراحی کرده‌اید‫ پیاده‌سازی کنید؟
+
+Because this is so simple and have a good performance. With `curr_dir` and the `dir_lock` we can easily find the paths and work with them and prevent race condition and the other things. Also with the `lookup_dir` and `dir_create` we can handle the directory tasks. 
 
 
 افزون بر طراحی
