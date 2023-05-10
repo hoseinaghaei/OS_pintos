@@ -90,12 +90,44 @@ Assume that we have a huge file on disk. We have a thread that wants to read thi
 
 >>‫ در این قسمت تعریف هر یک از `struct` ها، اعضای `struct` ها، متغیرهای سراسری‫ یا ایستا، `typedef` ها یا `enum` هایی که ایجاد کرده‌اید یا تغییر داده‌اید را بنویسید و‫ دلیل هر کدام را در حداکثر ۲۵ کلمه توضیح دهید.
 
+```c
+struct inode_disk
+  {
+    //block_sector_t start;               REMOVED
+    off_t length;                       /* File size in bytes. */
+    unsigned magic;                     /* Magic number. */
+    //uint32_t unused[125];               REMOVED
+    block_sector_t direct[123];
+    block_sector_t indirect;
+    block_sector_t in2direct;
+    bool is_dir;
+  };
+
+
+
+struct inode
+  {
+    ...
+    struct lock ilock;
+    ...
+  };
+
+static int inode_alloc (struct inode_disk *inode_disk, off_t length);
+static void inode_free (struct inode *inode);
+```
+In the altered inode_disk struct, first we removed `unused`, `start` fields due to gain some space(Because the total size of this block should not be more than 512 bytes due not to reach the sector size limitation) then we have used multi-level sectors. we have `direct`, `indirect`, `in2direct` sectors which shows the sector number in which our data is stored. We have 123 direct sectors and one number for each sector which shows our 1/2 level sector mappings.
+We also have `inode_alloc` and `inode_free` functions to allocate and free inodes.
+
 >>‫ بیشترین سایز فایل پشتیبانی شده توسط ساختار inode شما چقدر است؟
+
+512 * (123 + 128 + 128 * 128) = 512 * 16636 = 8517632 Bytes
 
 همگام سازی
 ----------
 
 >>‫ توضیح دهید که اگر دو پردازه بخواهند یک فایل را به طور همزمان گسترش دهند، کد شما چگونه از‫ حالت مسابقه جلوگیری می‌کند.
+
+We have added `ilock` for this reason, whenever two processes want to extend or change a same file, they should first `acquire` the `ilock` first. This approach prevents from changing a single file in one time by two processes.  
 
 >>‫ فرض کنید دو پردازه‌ی A و B فایل F را باز کرده‌اند و هر دو به end-of-file اشاره کرده‌اند.‫ اگر  همزمان A از F بخواند و B روی آن بنویسد، ممکن است که A تمام، بخشی یا هیچ چیز از‫ اطلاعات نوشته شده توسط B را بخواند. همچنین A نمی‌تواند چیزی جز اطلاعات نوشته شده توسط B را‫ بخواند. مثلا اگر B تماما ۱ بنویسد، A نیز باید تماما ۱ بخواند. توضیح دهید کد شما چگونه از‫ این حالت مسابقه جلوگیری می‌کند.
 
