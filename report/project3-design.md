@@ -189,6 +189,7 @@ We have 123 `direct` blocks which can be accessed faster than indirect ones. So 
 >>استراتژی ممکن برای پیاده سازی این دو ویژگی بحث کنید. شما باید به این سوال جدا از این که قصد پیاده سازی این ویژگی ها را
 >>دارید یا خیر پاسخ دهید.
 
+For this part, first of all you should pay attention that we need to do these works on the background (as you said in the question) so for both of them we need a seperated thread that is running on the background. For `write-behind` we should create and run its thread from starting point of our OS and it should iterate over the cache buffer blocks forever until powered down the system. Inside of these iterations it should write changed cache content (override) on relative disk sectors. How we identify a cache block that is changed? By a field named `dirty`. For `read-ahead` we should create and run a seperated thread when we are reading data of a disk's sector because we need to do reading-ahead on background of our system. Inside of this thread we'll read next sector of read sector and put it on cache.
 
 
 ### سوالات نظرسنجی
