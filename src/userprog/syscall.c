@@ -49,6 +49,9 @@ remove_syscall (struct intr_frame *, uint32_t *);
 void
 syscall_tell (struct intr_frame *, uint32_t *);
 
+void
+syscall_mkdir(struct intr_frame *, uint32_t *);
+
 bool
 is_args_null (uint32_t *args, int args_size) {
     int i = 0;
@@ -193,6 +196,9 @@ syscall_handler (struct intr_frame *f) {
             break;
         case SYS_TELL: // checkout current position in a file
             syscall_tell (f, args);
+            break;
+        case SYS_MKDIR:
+            syscall_mkdir(f,args);
             break;
         default:
             break;
@@ -405,4 +411,18 @@ syscall_tell (struct intr_frame *f, uint32_t *args) {
 
 
     f->eax = file_tell (t->t_fds[fd]);
+}
+
+void
+syscall_mkdir (struct intr_frame *f, uint32_t* args)
+{
+    if (!does_user_access_to_memory(args[1], 1)) {
+        printf("%s: exit(-1)\n", &thread_current()->name);
+        handle_finishing(-1);
+        thread_exit();
+    }
+
+    const char *path = (const char *) args[1];
+
+    f->eax = filesys_create (path, 0, true);
 }
