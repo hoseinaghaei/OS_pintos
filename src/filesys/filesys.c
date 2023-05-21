@@ -6,6 +6,7 @@
 #include "filesys/free-map.h"
 #include "filesys/inode.h"
 #include "filesys/directory.h"
+#include "filesys/cache.h"
 
 /* Partition that contains the file system. */
 struct block *fs_device;
@@ -22,6 +23,7 @@ filesys_init (bool format)
     PANIC ("No file system device found, can't initialize file system.");
 
   inode_init ();
+  cache_init ();
   free_map_init ();
 
   if (format)
@@ -53,21 +55,6 @@ filesys_create (const char *name, off_t initial_size, bool is_create_dir)
 
 bool
 filesys_create_dir(const char *path, off_t initial_size){
-//    block_sector_t inode_sector = 0;
-//    struct dir *parent;
-//    char tail[NAME_MAX + 1];
-//
-//    bool success = (dir_divide_path (&parent, tail, path)
-//                    && tail[0] != '\0'
-//                    && parent != NULL
-//                    && free_map_allocate (1, &inode_sector)
-//                    && (dir_create (inode_sector, 16))
-//                    && dir_add (parent, tail, inode_sector));
-//    if (!success && inode_sector != 0)
-//        free_map_release (inode_sector, 1);
-//    dir_close (parent);
-//
-//    return success;
     block_sector_t inode_sector = 0;
     struct dir *dir = dir_open_root ();
     bool success = (dir != NULL
