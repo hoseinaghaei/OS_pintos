@@ -140,7 +140,6 @@ inode_open (block_sector_t sector)
   inode->open_cnt = 1;
   inode->deny_write_cnt = 0;
   inode->removed = false;
-  block_read (fs_device, inode->sector, &inode->data);
   cache_read(fs_device, inode->sector, &inode->data, 0 , BLOCK_SECTOR_SIZE);
   return inode;
 }
