@@ -11,15 +11,6 @@
 /* Identifies an inode. */
 #define INODE_MAGIC 0x494e4f44
 
-/* On-disk inode.
-   Must be exactly BLOCK_SECTOR_SIZE bytes long. */
-struct inode_disk
-  {
-    block_sector_t start;               /* First data sector. */
-    off_t length;                       /* File size in bytes. */
-    unsigned magic;                     /* Magic number. */
-    uint32_t unused[125];               /* Not used. */
-  };
 
 /* Returns the number of sectors to allocate for an inode SIZE
    bytes long. */
@@ -28,17 +19,6 @@ bytes_to_sectors (off_t size)
 {
   return DIV_ROUND_UP (size, BLOCK_SECTOR_SIZE);
 }
-
-/* In-memory inode. */
-struct inode
-  {
-    struct list_elem elem;              /* Element in inode list. */
-    block_sector_t sector;              /* Sector number of disk location. */
-    int open_cnt;                       /* Number of openers. */
-    bool removed;                       /* True if deleted, false otherwise. */
-    int deny_write_cnt;                 /* 0: writes ok, >0: deny writes. */
-    struct inode_disk data;             /* Inode content. */
-  };
 
 /* Returns the block device sector that contains byte offset POS
    within INODE.
@@ -49,7 +29,7 @@ byte_to_sector (const struct inode *inode, off_t pos)
 {
   ASSERT (inode != NULL);
   if (pos < inode->data.length)
-    return inode->data.start + pos / BLOCK_SECTOR_SIZE;
+    return inode->data.direct + pos / BLOCK_SECTOR_SIZE;
   else
     return -1;
 }
@@ -88,7 +68,7 @@ inode_create (block_sector_t sector, off_t length)
       size_t sectors = bytes_to_sectors (length);
       disk_inode->length = length;
       disk_inode->magic = INODE_MAGIC;
-      if (free_map_allocate (sectors, &disk_inode->start))
+      if (free_map_allocate (sectors, &disk_inode->direct))
         {
 //          block_write (fs_device, sector, disk_inode);
           cache_write (fs_device, sector, disk_inode, 0, BLOCK_SECTOR_SIZE);
@@ -99,7 +79,7 @@ inode_create (block_sector_t sector, off_t length)
 
               for (i = 0; i < sectors; i++)
 //                block_write (fs_device, disk_inode->start + i, zeros);
-                  cache_write (fs_device, disk_inode->start + i, zeros, 0, BLOCK_SECTOR_SIZE);
+                  cache_write (fs_device, disk_inode->direct + i, zeros, 0, BLOCK_SECTOR_SIZE);
             }
           success = true;
         }
