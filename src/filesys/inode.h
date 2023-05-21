@@ -6,6 +6,8 @@
 #include "devices/block.h"
 #include "threads/synch.h"
 
+#define DIRECT_SECTORS 123
+#define INDIRECT_SECTORS 128
 struct bitmap;
 
 /* On-disk inode.
