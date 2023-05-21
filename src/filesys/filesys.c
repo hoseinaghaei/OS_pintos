@@ -43,19 +43,57 @@ filesys_done (void)
    Fails if a file named NAME already exists,
    or if internal memory allocation fails. */
 bool
-filesys_create (const char *name, off_t initial_size)
+filesys_create (const char *name, off_t initial_size, bool is_create_dir)
 {
-  block_sector_t inode_sector = 0;
-  struct dir *dir = dir_open_root ();
-  bool success = (dir != NULL
-                  && free_map_allocate (1, &inode_sector)
-                  && inode_create (inode_sector, initial_size)
-                  && dir_add (dir, name, inode_sector));
-  if (!success && inode_sector != 0)
-    free_map_release (inode_sector, 1);
-  dir_close (dir);
+  if (is_create_dir)
+      return filesys_create_dir(name, initial_size);
+  else
+      return filesys_create_file(name, initial_size);
+}
 
-  return success;
+bool
+filesys_create_dir(const char *path, off_t initial_size){
+//    block_sector_t inode_sector = 0;
+//    struct dir *parent;
+//    char tail[NAME_MAX + 1];
+//
+//    bool success = (dir_divide_path (&parent, tail, path)
+//                    && tail[0] != '\0'
+//                    && parent != NULL
+//                    && free_map_allocate (1, &inode_sector)
+//                    && (dir_create (inode_sector, 16))
+//                    && dir_add (parent, tail, inode_sector));
+//    if (!success && inode_sector != 0)
+//        free_map_release (inode_sector, 1);
+//    dir_close (parent);
+//
+//    return success;
+    block_sector_t inode_sector = 0;
+    struct dir *dir = dir_open_root ();
+    bool success = (dir != NULL
+                    && free_map_allocate (1, &inode_sector)
+                    && inode_create (inode_sector, initial_size)
+                    && dir_add (dir, path, inode_sector));
+    if (!success && inode_sector != 0)
+        free_map_release (inode_sector, 1);
+    dir_close (dir);
+
+    return success;
+}
+
+bool
+filesys_create_file(const char *name, off_t initial_size){
+    block_sector_t inode_sector = 0;
+    struct dir *dir = dir_open_root ();
+    bool success = (dir != NULL
+                    && free_map_allocate (1, &inode_sector)
+                    && inode_create (inode_sector, initial_size)
+                    && dir_add (dir, name, inode_sector));
+    if (!success && inode_sector != 0)
+        free_map_release (inode_sector, 1);
+    dir_close (dir);
+
+    return success;
 }
 
 /* Opens the file with the given NAME.

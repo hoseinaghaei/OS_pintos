@@ -234,3 +234,74 @@ dir_readdir (struct dir *dir, char name[NAME_MAX + 1])
     }
   return false;
 }
+
+/* Reports the parent directory and the name of file/directory
+   in `tail`. Note that `tail` must have allocated at least
+   `NAME_MAX + 1` bytes of memory. `tail` will change to empty
+   string in case of failure. */
+//bool
+//dir_divide_path(struct dir **parent, char *tail, const char *path)
+//{
+//    const char *t_path = path;
+//
+//    if (path[0] == '/')
+//        *parent = dir_open_root ();
+//    else
+//    {
+//        // This is done to prevent PANIC before thread creation.
+//        if (thread_current ()->curr_dir == NULL)
+//            *parent = dir_open_root ();
+//        else
+//        {
+//            if (inode_get_removed(thread_current ()->curr_dir->inode))
+//                goto failed;
+//            *parent = dir_reopen (thread_current ()->cwd);
+//        }
+//    }
+//
+//    *tail = '\0';
+//    while (true)
+//    {
+//        struct inode *next_inode = NULL;
+//        bool failed_lookup = false;
+//        if (strlen(tail) > 0)
+//        {
+//            if (!dir_lookup (*parent, tail, &next_inode))
+//                failed_lookup = true;
+//        }
+//
+//        int result = get_next_part (tail, &t_path);
+//        if (result < 0)
+//            goto failed;
+//        else if (result == 0)
+//        {
+//            inode_close (next_inode);
+//            break;
+//        }
+//
+//        else {
+//            if (failed_lookup)
+//                goto failed;
+//            if (next_inode) {
+//
+//                if (inode_get_removed (next_inode))
+//                    goto failed;
+//
+//                struct dir *next_dir = dir_open(next_inode);
+//                if (next_dir == NULL)
+//                    goto failed;
+//
+//                dir_close (*parent);
+//
+//                *parent = next_dir;
+//            }
+//        }
+//    }
+//    return true;
+//
+//    failed:
+//    *tail = '\0';
+//    *parent = NULL;
+//    dir_close (*parent);
+//    return false;
+//}

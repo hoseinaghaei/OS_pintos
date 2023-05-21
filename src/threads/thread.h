@@ -105,7 +105,7 @@ struct thread
     struct file *exec_file;
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
-
+    struct dir *curr_dir;
     struct process_status *p_status;
     struct list children;
     struct file *executed_file;

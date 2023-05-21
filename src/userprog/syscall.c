@@ -250,7 +250,8 @@ syscall_create (struct intr_frame *f, uint32_t *args) {
         handle_finishing (-1);
         thread_exit ();
     }
-    f->eax = filesys_create ((const char *) args[1], args[2]);
+    const char *name = (const char *) args[1];
+    f->eax = filesys_create (name, args[2], false);
 }
 
 void
