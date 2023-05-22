@@ -25,13 +25,12 @@ bytes_to_sectors (off_t size)
    Returns -1 if INODE does not contain data for a byte at offset
    POS. */
 static block_sector_t
-byte_to_sector (const struct inode *inode, off_t pos)
-{
-  ASSERT (inode != NULL);
-  if (pos < inode->data.length)
-    return inode->data.direct + pos / BLOCK_SECTOR_SIZE;
-  else
-    return -1;
+byte_to_sector(const struct inode *inode, off_t pos) {
+    ASSERT (inode != NULL);
+    if (pos < inode->data.length)
+        return inode->data.direct[pos / BLOCK_SECTOR_SIZE];
+    else
+        return -1;
 }
 
 /* List of open inodes, so that opening a single inode twice
@@ -62,28 +61,21 @@ inode_create (block_sector_t sector, off_t length)
      one sector in size, and you should fix that. */
   ASSERT (sizeof *disk_inode == BLOCK_SECTOR_SIZE);
 
-  disk_inode = calloc (1, sizeof *disk_inode);
-  if (disk_inode != NULL)
-    {
-      size_t sectors = bytes_to_sectors (length);
-      disk_inode->length = length;
-      disk_inode->magic = INODE_MAGIC;
-      if (free_map_allocate (sectors, &disk_inode->direct))
-        {
-//          block_write (fs_device, sector, disk_inode);
-          cache_write (fs_device, sector, disk_inode, 0, BLOCK_SECTOR_SIZE);
-          if (sectors > 0)
-            {
-              static char zeros[BLOCK_SECTOR_SIZE];
-              size_t i;
-
-              for (i = 0; i < sectors; i++)
-//                block_write (fs_device, disk_inode->start + i, zeros);
-                  cache_write (fs_device, disk_inode->direct + i, zeros, 0, BLOCK_SECTOR_SIZE);
-            }
-          success = true;
+    disk_inode = calloc(1, sizeof *disk_inode);
+    if (disk_inode != NULL) {
+        size_t sectors = bytes_to_sectors(length);
+        disk_inode->length = length;
+        disk_inode->magic = INODE_MAGIC;
+        size_t i;
+        static char zeros[BLOCK_SECTOR_SIZE];
+        for (i = 0; i < sectors; i++) {
+            if (free_map_allocate(1, &(disk_inode->direct[i])))
+                cache_write(fs_device, disk_inode->direct[i], zeros, 0, BLOCK_SECTOR_SIZE);
         }
-      free (disk_inode);
+        success = true;
+        cache_write(fs_device, sector, disk_inode, 0, BLOCK_SECTOR_SIZE);
+
+        free(disk_inode);
     }
   return success;
 }
