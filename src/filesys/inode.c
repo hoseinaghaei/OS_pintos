@@ -180,7 +180,7 @@ inode_close (struct inode *inode)
         {
             free_map_release (inode->sector, 1);
             deallocate_direct_indirect_sectors(&inode->data, inode->data.length / BLOCK_SECTOR_SIZE + 1);
-
+            clear_cache_if_needed(inode->sector);
         }
 
         free (inode);
