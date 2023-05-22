@@ -51,5 +51,5 @@ int inumber (int fd);
 void* sbrk (intptr_t increment);
 int cache_reset (void);
 int hit_number (void);
-
+int cache_write_number (void);
 #endif /* lib/user/syscall.h */

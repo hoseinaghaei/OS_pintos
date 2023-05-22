@@ -35,6 +35,12 @@ cache_down() {
     }
 }
 
+uint16_t
+get_num_writes ()
+{
+    return cache_read_results.write_num;
+}
+
 uint32_t
 get_hit ()
 {
@@ -48,7 +54,7 @@ get_hit ()
 void
 reset_cache ()
 {
-    cache_read_results = (cache_results) {0, 0};
+    cache_read_results = (cache_results) {0, 0, 0};
 }
 
 void
@@ -75,6 +81,7 @@ get_cache_block_item(struct block *fs_device, block_sector_t sector) {
         lock_acquire(&cache_item->cache_item_lock);
         if (cache_item->valid && cache_item->dirty) {
             flush_cache_item(fs_device, cache_item);
+            cache_read_results.write_num += 1;
         }
         block_read (fs_device, sector, cache_item->data);
         cache_item->valid = true;

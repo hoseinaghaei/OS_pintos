@@ -209,3 +209,9 @@ hit_number (void)
 {
   return syscall0 (SYS_CACHE_HIT);
 }
+
+int
+cache_write_number (void)
+{
+  return syscall0 (SYS_CACHE_WRITE_NUM);
+}
