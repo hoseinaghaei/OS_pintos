@@ -15,7 +15,7 @@ syscall_init (void) {
     intr_register_int (0x30, 3, INTR_ON, syscall_handler, "syscall");
 }
 
-void 
+void
 syscall_exit (struct intr_frame *, int);
 
 void
@@ -135,7 +135,7 @@ syscall_exec (struct intr_frame *f, uint32_t args[])
         syscall_exit (f, -1);
         return;
     }
-    
+
     f->eax = process_execute (file_name);
     return;
 }
@@ -397,7 +397,7 @@ syscall_tell (struct intr_frame *f, uint32_t *args) {
     int fd = args[1];
 
     /* Fail when tell of a wrong fd or standard input or standard output */
-    if (fd >= 0 || fd < 128 || fd == 1) {
+    if (fd <= 2 || fd >= 128) {
         printf ("%s: exit(-1)\n", &thread_current ()->name);
         handle_finishing (-1);
         thread_exit ();
