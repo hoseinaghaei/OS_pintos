@@ -376,52 +376,39 @@ allocate_direct_indirect_sectors(struct inode_disk *disk_inode, int sector_count
     if (!allocate_direct_sectors(disk_inode, sector_count)) {
         return false;
     }
-    return true;
-//    size_t i;
-//    static char zeros[BLOCK_SECTOR_SIZE];
-//    for (i = 0; i < sector_count; i++) {
-//        if (!free_map_allocate (1, &(disk_inode->direct[i]))) {
-//            return false;
-//        }
-//            cache_write (fs_device, disk_inode->direct[i], zeros, 0, BLOCK_SECTOR_SIZE);
-//    }
-//    return true;
-//    if (!allocate_direct_sectors(disk_inode, sector_count)) {
-//        return false;
-//    }
-//    sector_count -= DIRECT_SECTORS;
-//    if (sector_count <= 0)
-//        return true;
-//    if (!disk_inode->indirect)
-//        if (!allocate_sector(&disk_inode->indirect))
-//            return false;
-//
-//    if (!allocate_indirect_sectors(disk_inode->indirect, sector_count)) {
-//        return false;
-//    }
-//
-//    sector_count -= INDIRECT_SECTORS;
-//    if (sector_count <= 0)
-//        return true;
-//    if (!disk_inode->double_indirect)
-//        if (!allocate_sector(&disk_inode->double_indirect))
-//            return false;
-//
-//    block_sector_t indirect_sectors[INDIRECT_SECTORS];
-//    cache_read(fs_device, disk_inode->double_indirect, &indirect_sectors, 0, BLOCK_SECTOR_SIZE);
-//    for (int i = 0; i < INDIRECT_SECTORS && sector_count > 0; ++i) {
-//        if (!indirect_sectors[i])
-//            if (!allocate_sector(&indirect_sectors[i]))
-//                return false;
-//        if (!allocate_indirect_sectors(indirect_sectors[i], sector_count))
-//            return false;
-//        sector_count -= INDIRECT_SECTORS;
-//    }
-//    if (sector_count <= 0) {
-//        cache_write (fs_device, disk_inode->double_indirect, &indirect_sectors, 0, BLOCK_SECTOR_SIZE); // check address
-//        return true;
-//    }
-//    return false;
+    sector_count -= DIRECT_SECTORS;
+    if (sector_count <= 0)
+        return true;
+    if (!disk_inode->indirect)
+        if (!allocate_sector(&disk_inode->indirect))
+            return false;
+
+    if (!allocate_indirect_sectors(disk_inode->indirect, sector_count)) {
+        return false;
+    }
+
+    sector_count -= INDIRECT_SECTORS;
+    if (sector_count <= 0)
+        return true;
+    if (!disk_inode->double_indirect)
+        if (!allocate_sector(&disk_inode->double_indirect))
+            return false;
+
+    block_sector_t indirect_sectors[INDIRECT_SECTORS];
+    cache_read(fs_device, disk_inode->double_indirect, &indirect_sectors, 0, BLOCK_SECTOR_SIZE);
+    for (int i = 0; i < INDIRECT_SECTORS && sector_count > 0; i++) {
+        if (!indirect_sectors[i])
+            if (!allocate_sector(&indirect_sectors[i]))
+                return false;
+        if (!allocate_indirect_sectors(indirect_sectors[i], sector_count))
+            return false;
+        sector_count -= INDIRECT_SECTORS;
+    }
+    if (sector_count <= 0) {
+        cache_write (fs_device, disk_inode->double_indirect, &indirect_sectors, 0, BLOCK_SECTOR_SIZE); // check address
+        return true;
+    }
+    return false;
 }
 
 bool
