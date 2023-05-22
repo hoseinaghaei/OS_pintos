@@ -160,7 +160,7 @@ inode_close (struct inode *inode)
       if (inode->removed)
         {
           free_map_release (inode->sector, 1);
-          free_map_release (inode->data.start,
+          free_map_release (inode->data.direct[0],
                             bytes_to_sectors (inode->data.length));
         }
 
