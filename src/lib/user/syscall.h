@@ -49,5 +49,7 @@ int inumber (int fd);
 
 /* Homework 5, Part B. */
 void* sbrk (intptr_t increment);
+int cache_reset (void);
+int hit_number (void);
 
 #endif /* lib/user/syscall.h */

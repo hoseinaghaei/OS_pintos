@@ -16,9 +16,17 @@ typedef struct cache_block_item {
     struct lock cache_item_lock;
 } cache_block_item;
 
+typedef struct cache_results
+{
+    uint16_t hit;        /* # of hit */
+    uint16_t miss;       /* # of miss */
+} cache_results;
+
+
 cache_block_item cache[CACHE_SIZE];
 struct list cache_used_list;
 struct lock cache_list_lock;
+static cache_results cache_read_results;
 
 // initializing the cache for using
 void cache_init(void);
@@ -26,4 +34,6 @@ void cache_down();
 void cache_read(struct block *fs_device, block_sector_t sector, void *buffer, off_t offset, int size);
 void cache_write(struct block *fs_device, block_sector_t sector, void *buffer, off_t offset, int size);
 void clear_cache_if_needed(block_sector_t sector);
+void reset_cache ();
+uint32_t get_hit (void);
 #endif /* filesys/cache.h */
