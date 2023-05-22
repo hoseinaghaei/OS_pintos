@@ -6,6 +6,7 @@
 #include "userprog/syscall.h"
 #include "userprog/process.h"
 #include "userprog/process.h"
+#include "filesys/cache.h"
 
 static void
 syscall_handler (struct intr_frame *);
@@ -200,6 +201,12 @@ syscall_handler (struct intr_frame *f) {
         case SYS_MKDIR:
             syscall_mkdir(f,args);
             break;
+        case SYS_CACHE_HIT:
+            syscall_cache_hit (f, args);
+            break;
+        case SYS_CACHE_RESET:
+            syscall_cache_reset (f, args);
+            break;
         default:
             break;
     }
@@ -290,6 +297,18 @@ get_thread_available_fd (struct thread *t) {
         }
     }
     return -1;
+}
+
+void 
+syscall_cache_hit (struct intr_frame *f, uint32_t *args)
+{
+    f->eax = get_hit();
+}
+
+void 
+syscall_cache_reset (struct intr_frame *f, uint32_t *args)
+{
+    reset_cache ();
 }
 
 void
