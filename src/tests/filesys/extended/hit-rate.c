@@ -34,6 +34,7 @@ test_main ()
    close (fd);
 
    int newfd = open (fname);
+   CHECK(cache_reset (), "reset cache");
    for (size_t i = 0; i < FILE_SIZE; i++)
    {
       read (newfd, &buffer, 1);
