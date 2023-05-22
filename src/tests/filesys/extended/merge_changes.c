@@ -22,5 +22,5 @@ test_main (void)
     }
     int number;
     CHECK (number = cache_write_number (), "get write number");
-    CHECK (number >= 128 - 20 && number <= 128 + 20, "merge changes is correct");
+    CHECK (number >= 128 - 5 && number <= 128 + 5, "merge changes is correct");
 }
