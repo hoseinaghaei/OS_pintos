@@ -207,6 +207,9 @@ syscall_handler (struct intr_frame *f) {
         case SYS_CACHE_RESET:
             syscall_cache_reset (f, args);
             break;
+        case SYS_CACHE_WRITE_NUM:
+            syscall_cache_write_num (f, args);
+            break;
         default:
             break;
     }
@@ -297,6 +300,12 @@ get_thread_available_fd (struct thread *t) {
         }
     }
     return -1;
+}
+
+void 
+syscall_cache_write_num (struct intr_frame *f, uint32_t *args)
+{
+    f->eax = get_num_writes ();
 }
 
 void 

@@ -9,6 +9,7 @@ test_main (void)
     char *fname = "test.txt";
     int fd;
     CHECK (create (fname, file_size), "file created");
+    CHECK (cache_reset (), "reset is ok");
     CHECK (fd = open (fname), "opened file");
     char buffer = 100;
     for (size_t i = 0; i < file_size; i++)
@@ -19,6 +20,7 @@ test_main (void)
     {
         read (fd, &buffer, 1);
     }
-    
-    
+    int number;
+    CHECK (number = cache_write_number (), "get write number");
+    CHECK (number >= 128 - 20 && number <= 128 + 20, "merge changes is correct");
 }

@@ -32,7 +32,8 @@ enum
     SYS_INUMBER,                 /* Returns the inode number for a fd. */
 
     SYS_CACHE_HIT,
-    SYS_CACHE_RESET
+    SYS_CACHE_RESET,
+    SYS_CACHE_WRITE_NUM
   };
 
 #endif /* lib/syscall-nr.h */

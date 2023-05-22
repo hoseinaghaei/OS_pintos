@@ -20,6 +20,7 @@ typedef struct cache_results
 {
     uint16_t hit;        /* # of hit */
     uint16_t miss;       /* # of miss */
+    uint16_t write_num;   /* # of writes*/
 } cache_results;
 
 
@@ -36,4 +37,5 @@ void cache_write(struct block *fs_device, block_sector_t sector, void *buffer, o
 void clear_cache_if_needed(block_sector_t sector);
 void reset_cache ();
 uint32_t get_hit (void);
+uint16_t get_num_writes ();
 #endif /* filesys/cache.h */
