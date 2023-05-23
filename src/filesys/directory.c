@@ -57,7 +57,7 @@ dir_open (struct inode *inode)
     if (inode != NULL && dir != NULL)
     {
         dir->inode = inode;
-        dir->pos = 0;
+        dir->pos = 1 * sizeof (struct dir_entry);
 //        lock_init (&dir->dir_lock);
         return dir;
     }
