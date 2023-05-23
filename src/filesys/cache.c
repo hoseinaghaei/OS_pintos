@@ -124,11 +124,12 @@ get_cache_item_index(block_sector_t sector) {
 
 void
 clear_cache_if_needed(block_sector_t sector) {
-    int cache_index = get_cache_item_index(sector);
-    if (cache_index != -1) {
-        struct cache_block_item cache_item = cache[cache_index];
-        lock_acquire(&cache_item.cache_item_lock);
-        cache_item.valid = false;
-        lock_release(&cache_item.cache_item_lock);
-    }
+//    int cache_index = get_cache_item_index(sector);
+//    if (cache_index != -1) {
+//        struct cache_block_item cache_item = cache[cache_index];
+//        lock_acquire(&cache_item.cache_item_lock);
+//        cache_item.valid = false;
+//        lock_release(&cache_item.cache_item_lock);
+//    }
+return;
 }
