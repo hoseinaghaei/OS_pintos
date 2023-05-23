@@ -52,6 +52,15 @@ syscall_tell (struct intr_frame *, uint32_t *);
 void
 syscall_mkdir(struct intr_frame *, uint32_t *);
 
+void
+syscall_chdir(struct intr_frame *, uint32_t *);
+
+void
+syscall_readdir(struct intr_frame *, uint32_t *);
+
+void
+syscall_readdir(struct intr_frame *, uint32_t *);
+
 bool
 is_args_null (uint32_t *args, int args_size) {
     int i = 0;
@@ -200,12 +209,41 @@ syscall_handler (struct intr_frame *f) {
         case SYS_MKDIR:
             syscall_mkdir(f,args);
             break;
+        case SYS_CHDIR:
+            syscall_chdir(f,args);
+            break;
+        case SYS_READDIR:
+            syscall_readdir(f,args);
+            break;
+        case SYS_INUMBER:
+            syscall_inumber(f,args);
+            break;
+        case SYS_ISDIR:
+            syscall_isdir(f,args);
+            break;
         default:
             break;
     }
     if (args[0] == SYS_EXIT) { // terminate a process
         syscall_exit (f, (int) args[1]);
     }
+}
+
+struct dir *
+dir_from_file (struct file *file)
+{
+    if (file == NULL)
+        return NULL;
+
+    struct inode *inode = file_get_inode (file);
+
+    if (inode == NULL)
+        return NULL;
+
+    if (!inode_isdir (inode))
+        return NULL;
+
+    return (struct dir *) file;
 }
 
 void
@@ -226,14 +264,14 @@ syscall_write (struct intr_frame *f, uint32_t *args) {
         return;
     }
 
-    if (fd > 128 || fd < 0) {
+    if (fd > 128 || fd < 0 || fd == STDIN_FILENO) {
         printf ("%s: exit(-1)\n", &thread_current ()->name);
         handle_finishing (-1);
         thread_exit ();
     }
     struct thread *t = thread_current ();
     struct file *file = t->t_fds[fd];
-    if (file != NULL) {
+    if (dir_from_file (file) == NULL) {
         f->eax = file_write (file, string, size);
     } else {
         printf ("%s: exit(-1)\n", &thread_current ()->name);
@@ -426,4 +464,92 @@ syscall_mkdir (struct intr_frame *f, uint32_t* args)
     const char *path = (const char *) args[1];
 
     f->eax = filesys_create (path, 0, true);
+}
+
+void
+syscall_chdir (struct intr_frame *f, uint32_t* args){
+    char *name = (char *) args[1];
+    struct dir *dir = dir_open_directory (name);
+    if (dir != NULL)
+    {
+        dir_close (thread_current ()->curr_dir);
+
+        thread_current ()->curr_dir = dir;
+        f->eax = true;
+    }
+    else
+        f->eax = false;
+
+}
+
+void
+syscall_readdir (struct intr_frame *f, uint32_t* args){
+    int fd = (int) args[1];
+    char *name = (char *) args[2];
+
+    struct thread *curr_thread = thread_current();
+    if (curr_thread->t_fds[fd] == NULL) {
+        f->eax = false;
+        return;
+    }
+
+
+    /* Fail when reading a wrong fd or standard output */
+    if (fd > 128 || fd < 0 || fd == 1)
+    {
+        f->eax = false;
+        return;
+    }
+
+    struct dir *dir = dir_from_file (curr_thread->t_fds[fd]);
+
+    if (dir == NULL)
+    {
+        f->eax = false;
+        return;
+    }
+
+    f->eax = dir_readdir (dir, name);
+}
+
+static bool
+get_inode_from_fd(struct inode **inode, int fd, struct thread *trd)
+{
+    if (trd->t_fds[fd] == NULL) {
+        return false;
+    }
+
+    /* Fail when seek of a wrong fd or standard input or standard output */
+    if (fd > 128 || fd < 0 || fd == 0 || fd == 1)
+        return false;
+
+    struct file* descriptor = trd->t_fds[fd];
+    *inode = file_get_inode (descriptor);
+    return true;
+}
+
+void
+syscall_inumber (struct intr_frame *f, uint32_t* args){
+    struct inode *inode;
+    if (!get_inode_from_fd (&inode, args[1], thread_current())) {
+        printf ("%s: exit(-1)\n", &thread_current ()->name);
+        handle_finishing (-1);
+        thread_exit ();
+    }
+
+    f->eax = inode_get_inumber (inode);
+}
+
+void
+syscall_isdir(struct intr_frame *f, uint32_t* args){
+
+    struct inode *inode;
+    if (!get_inode_from_fd (&inode, args[1], thread_current())){
+        printf ("%s: exit(-1)\n", &thread_current ()->name);
+        handle_finishing (-1);
+        thread_exit ();
+    }
+
+
+    f->eax = inode_isdir (inode);
 }
