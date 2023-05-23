@@ -299,7 +299,7 @@ deallocate_indirect_sectors(block_sector_t indirect, int sector_count) {
 void
 deallocate_direct_sectors(struct inode_disk *inode_disk, int sector_count) {
     for (int i = 0; i < DIRECT_SECTORS && i < sector_count; ++i) {
-        if (!inode_disk->direct[i]) {
+        if (inode_disk->direct[i]) {
             free_map_release(inode_disk->direct[i], 1);
             clear_cache_if_needed(inode_disk->direct[i]);
         }
