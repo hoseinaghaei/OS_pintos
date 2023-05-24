@@ -27,7 +27,6 @@ struct dir_entry
 bool
 dir_create (block_sector_t sector, size_t entry_cnt)
 {
-//  return inode_create (sector, entry_cnt * sizeof (struct dir_entry), true);
     if (inode_create (sector, entry_cnt * sizeof (struct dir_entry), true)){
         struct dir *curr_dir = dir_open (inode_open (sector));
         struct dir_entry dir_entry;
