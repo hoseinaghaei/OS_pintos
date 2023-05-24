@@ -28,24 +28,19 @@ bool
 dir_create (block_sector_t sector, size_t entry_cnt)
 {
 //  return inode_create (sector, entry_cnt * sizeof (struct dir_entry), true);
-    bool success = inode_create (sector, entry_cnt * sizeof (struct dir_entry), true);
-    if (success)
-    {
+    if (inode_create (sector, entry_cnt * sizeof (struct dir_entry), true)){
         struct dir *curr_dir = dir_open (inode_open (sector));
-        struct dir_entry e;
-        e.inode_sector = sector;
-        e.in_use = false;
-
-        /* Acquire dir lock */
-//        dir_acquire_lock (curr_dir);
-        if (inode_write_at (dir_get_inode (curr_dir), &e, sizeof (e), 0) != sizeof (e))
-            success = false;
-
-        /* Release dir lock */
-//        dir_release_lock (curr_dir);
+        struct dir_entry dir_entry;
+        dir_entry.inode_sector = sector;
+        dir_entry.in_use = false;
+        if (inode_write_at (dir_get_inode (curr_dir), &dir_entry, sizeof (dir_entry), 0) != sizeof (dir_entry)){
+            dir_close (curr_dir);
+            return false;
+        }
         dir_close (curr_dir);
+        return true;
     }
-    return success;
+    return false;
 }
 
 /* Opens and returns the directory for the given INODE, of which
@@ -53,18 +48,14 @@ dir_create (block_sector_t sector, size_t entry_cnt)
 struct dir *
 dir_open (struct inode *inode)
 {
-    struct dir *dir = calloc (1, sizeof *dir);
-    if (inode != NULL && dir != NULL)
-    {
-        dir->inode = inode;
-        dir->pos = 1 * sizeof (struct dir_entry);
-//        lock_init (&dir->dir_lock);
-        return dir;
-    }
-    else
-    {
+    struct dir *new_dir = calloc (1, sizeof *new_dir);
+    if (inode && new_dir){
+        new_dir->inode = inode;
+        new_dir->pos = 1 * sizeof (struct dir_entry);
+        return new_dir;
+    }else{
         inode_close (inode);
-        free (dir);
+        free (new_dir);
         return NULL;
     }
 }
@@ -410,7 +401,7 @@ dir_open_directory (const char *directory)
 }
 
 bool
-split_directory_and_filename (const char *path, char *directory, char *filename)
+can_divide_directory (const char *path, char *directory, char *filename)
 {
     if (strlen (path) == 0)
         return false;
