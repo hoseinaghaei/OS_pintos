@@ -180,10 +180,3 @@ do_format (void)
   free_map_close ();
   printf ("done.\n");
 }
-
-//bool
-//filesys_find_dir (const struct dir *dir, const char *name,
-//                  struct inode **inode)
-//{
-//    dir_lookup
-//}
