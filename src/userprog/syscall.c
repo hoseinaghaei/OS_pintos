@@ -63,6 +63,21 @@ void
 syscall_readdir(struct intr_frame *, uint32_t *);
 
 bool
+file_descriptor_inode(struct inode **inode, int fd, struct thread *trd)
+{
+    if (fd > 128 || fd < 0 || fd == 0 || fd == 1){
+        return false;
+    }
+
+    if (trd->t_fds[fd] == NULL) {
+        return false;
+    }
+
+    *inode = file_get_inode (trd->t_fds[fd]);
+    return true;
+}
+
+bool
 is_args_null (uint32_t *args, int args_size) {
     int i = 0;
     while (i < args_size) {
@@ -540,26 +555,10 @@ syscall_readdir (struct intr_frame *f, uint32_t* args){
     f->eax = dir_readdir (dir, name);
 }
 
-static bool
-get_inode_from_fd(struct inode **inode, int fd, struct thread *trd)
-{
-    if (trd->t_fds[fd] == NULL) {
-        return false;
-    }
-
-    /* Fail when seek of a wrong fd or standard input or standard output */
-    if (fd > 128 || fd < 0 || fd == 0 || fd == 1)
-        return false;
-
-    struct file* descriptor = trd->t_fds[fd];
-    *inode = file_get_inode (descriptor);
-    return true;
-}
-
 void
 syscall_inumber (struct intr_frame *f, uint32_t* args){
     struct inode *inode;
-    if (!get_inode_from_fd (&inode, args[1], thread_current())) {
+    if (!file_descriptor_inode (&inode, args[1], thread_current())) {
         printf ("%s: exit(-1)\n", &thread_current ()->name);
         handle_finishing (-1);
         thread_exit ();
@@ -572,7 +571,7 @@ void
 syscall_isdir(struct intr_frame *f, uint32_t* args){
 
     struct inode *inode;
-    if (!get_inode_from_fd (&inode, args[1], thread_current())){
+    if (!file_descriptor_inode (&inode, args[1], thread_current())){
         printf ("%s: exit(-1)\n", &thread_current ()->name);
         handle_finishing (-1);
         thread_exit ();
@@ -581,3 +580,4 @@ syscall_isdir(struct intr_frame *f, uint32_t* args){
 
     f->eax = inode_isdir (inode);
 }
+
