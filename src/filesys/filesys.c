@@ -52,9 +52,9 @@ filesys_create (const char *name, off_t initial_size, bool is_dir)
     char *filename = malloc(NAME_MAX + 1);
     directory_path[0] = '\0';
     filename[0] = '\0';
+    
     if (!can_divide_directory (name, directory_path, filename))
         return false;
-
     if (is_dir)
         return filesys_create_dir(name, initial_size, directory_path, filename);
     else
