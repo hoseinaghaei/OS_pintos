@@ -232,7 +232,7 @@ syscall_handler (struct intr_frame *f) {
         case SYS_TELL: // checkout current position in a file
             syscall_tell (f, args);
             break;
-        case SYS_MKDIR:
+        case SYS_MKDIR: //create directory
             syscall_mkdir(f,args);
             break;
         case SYS_CHDIR:
