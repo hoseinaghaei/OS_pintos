@@ -104,18 +104,15 @@ filesys_open (const char *name)
     if (name[0] == '\0'){
         return NULL;
     }
-    char *directory_path = malloc(NAME_MAX + 1);
-    char *filename = malloc(NAME_MAX + 1);
-    directory_path[0] = '\0';
+    char directory[strlen (name) + 1];
+    char filename[NAME_MAX + 1];
+    directory[0] = '\0';
     filename[0] = '\0';
 
-    if (!can_divide_directory (name, directory_path, filename))
-        return NULL;
-
-    struct dir *dir = dir_open_directory (directory_path);
-
+    bool can_divide_path = can_divide_directory (name, directory, filename);
+    struct dir *dir = dir_open_directory (directory);
     struct inode *inode = NULL;
-    if (!dir)
+    if (dir == NULL || !can_divide_path)
         return NULL;
 
     if (strlen (filename) == 0)
@@ -143,11 +140,9 @@ filesys_remove (const char *name)
     char filename[NAME_MAX + 1];
     directory[0] = '\0';
     filename[0] = '\0';
-
-    bool split_success = can_divide_directory (name, directory, filename);
+    bool can_divide_path = can_divide_directory (name, directory, filename);
     struct dir *dir = dir_open_directory (directory);
-
-    bool success = split_success && (dir != NULL) && dir_remove (dir, filename);
+    bool success = can_divide_path && (dir != NULL) && dir_remove (dir, filename);
     dir_close (dir);
 
     return success;
