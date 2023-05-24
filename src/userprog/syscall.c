@@ -244,7 +244,7 @@ syscall_handler (struct intr_frame *f) {
         case SYS_INUMBER: //get inumber
             syscall_inumber(f,args);
             break;
-        case SYS_ISDIR:
+        case SYS_ISDIR: //check is a inode is dir
             syscall_isdir(f,args);
             break;
         case SYS_CACHE_HIT:
