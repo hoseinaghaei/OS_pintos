@@ -532,7 +532,6 @@ syscall_readdir (struct intr_frame *f, uint32_t* args){
     }
 
     struct dir *dir = get_file_dir (curr_thread->t_fds[fd]);
-
     if (dir == NULL)
     {
         f->eax = false;
