@@ -48,7 +48,7 @@ filesys_done (void)
 bool
 filesys_create (const char *name, off_t initial_size, bool is_dir)
 {
-    char *directory_path = malloc(strlen (name) + 1);
+    char *directory_path = malloc(NAME_MAX + 1);
     char *filename = malloc(NAME_MAX + 1);
     directory_path[0] = '\0';
     filename[0] = '\0';
