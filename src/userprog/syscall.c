@@ -235,7 +235,7 @@ syscall_handler (struct intr_frame *f) {
         case SYS_MKDIR: //create directory
             syscall_mkdir(f,args);
             break;
-        case SYS_CHDIR:
+        case SYS_CHDIR: //change to a directory
             syscall_chdir(f,args);
             break;
         case SYS_READDIR:
