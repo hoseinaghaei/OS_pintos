@@ -3,21 +3,39 @@
 ## گزارش تمرین گروهی ۳
 
 
-شماره گروه: 6
+گروه 
 
 -----
 
 > نام و آدرس پست الکترونیکی اعضای گروه را در این قسمت بنویسید.
 
-Saregh alireza79.ghazanfari@gmail.com
+* Seyyed Alireza Ghazanfari alireza79.ghazanfari@gmail.com
+* Armin DelgosarMaher arminmaher@gmail.com
+* AmirMahdi Kousheshi amk_amir82@yahoo.com
+* Hossein Aghaei h.aghaei.araei@gmail.com
 
-# بافرکش
-## داده ساختار ها
-<div dir='ltr'>
+## bugs
+First we had some problems with runing make check but and so it was because of our cache problems that we fixed.
 
+next problem was for persistence tests that we had problem in opening fs.tar after that we fix our file system problem and solved this error.
 
+# Algorithms
 
-## الگوریتم
+we had no more changes from this phase design of course for handling thread safety we add a new lock to each inode to handle synch on reading and writing operations and we will acquire it first of reading or writing and release after finishing the operation. So in result we remove the general lock we had. 
+
+For dir section we add some syscalls as we were said in the doc and we had to change most of syscalls about filesys and rewrite it again. 
+
+# Other points
+
+we did not add any binary file to git. 
+
+our code is so simple and we tried to use clean code to reduce complexity. Our code style is GNU code style and it's so similar to pintos coding style.
+
+Abour lists that we had in cache we implement all operations and algorithms that we need ourselves.
+
+no copy code.
+
+no comment code in the final version.
 
 ## تست‌های پیاده‌سازی شده
 
@@ -192,18 +210,11 @@ pass;
 
 easy
 
-# فایل‌های قابل گسترش
-## داده ساختار ها
-
-## الگوریتم
-
-
-# زیرمسیرها
-## داده ساختار ها
-<div dir='ltr'>
-
-
-## الگوریتم
 
 ## مسئولیت هر فرد
+
+refactoring and clean code -- armin
+buffer cache -- hossein & alireza
+o.w. amir mahdi
+
 
