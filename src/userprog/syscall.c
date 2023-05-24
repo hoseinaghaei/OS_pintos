@@ -238,7 +238,7 @@ syscall_handler (struct intr_frame *f) {
         case SYS_CHDIR: //change to a directory
             syscall_chdir(f,args);
             break;
-        case SYS_READDIR:
+        case SYS_READDIR: //read dirs in a directory
             syscall_readdir(f,args);
             break;
         case SYS_INUMBER:
