@@ -52,7 +52,7 @@ filesys_create (const char *name, off_t initial_size, bool is_dir)
     char *filename = malloc(NAME_MAX + 1);
     directory_path[0] = '\0';
     filename[0] = '\0';
-    
+
     if (!can_divide_directory (name, directory_path, filename))
         return false;
     if (is_dir)
@@ -104,16 +104,18 @@ filesys_open (const char *name)
     if (name[0] == '\0'){
         return NULL;
     }
-    char directory[strlen (name) + 1];
-    char filename[NAME_MAX + 1];
-    directory[0] = '\0';
+    char *directory_path = malloc(NAME_MAX + 1);
+    char *filename = malloc(NAME_MAX + 1);
+    directory_path[0] = '\0';
     filename[0] = '\0';
 
-    bool split_success = can_divide_directory (name, directory, filename);
-    struct dir *dir = dir_open_directory (directory);
+    if (!can_divide_directory (name, directory_path, filename))
+        return NULL;
+
+    struct dir *dir = dir_open_directory (directory_path);
 
     struct inode *inode = NULL;
-    if (dir == NULL || !split_success)
+    if (!dir)
         return NULL;
 
     if (strlen (filename) == 0)
