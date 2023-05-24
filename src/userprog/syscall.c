@@ -241,7 +241,7 @@ syscall_handler (struct intr_frame *f) {
         case SYS_READDIR: //read dirs in a directory
             syscall_readdir(f,args);
             break;
-        case SYS_INUMBER:
+        case SYS_INUMBER: //get inumber
             syscall_inumber(f,args);
             break;
         case SYS_ISDIR:
