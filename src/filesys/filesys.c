@@ -45,21 +45,11 @@ filesys_done (void)
    Returns true if successful, false otherwise.
    Fails if a file named NAME already exists,
    or if internal memory allocation fails. */
-//bool
-//filesys_create (const char *name, off_t initial_size, bool is_create_dir)
-//{
-//  if (is_create_dir)
-//      return filesys_create_dir(name, initial_size);
-//  else
-//      return filesys_create_file(name, initial_size);
-//}
-
 bool
 filesys_create (const char *name, off_t initial_size, bool is_dir)
 {
     block_sector_t inode_sector = 0;
-
-    char directory[strlen (name) + 1];
+    char directory[NAME_MAX + 1];
     char filename[NAME_MAX + 1];
     directory[0] = '\0';
     filename[0] = '\0';
@@ -78,35 +68,35 @@ filesys_create (const char *name, off_t initial_size, bool is_dir)
     return success;
 }
 
-//bool
-//filesys_create_dir(const char *path, off_t initial_size){
-//    block_sector_t inode_sector = 0;
-//    struct dir *dir = dir_open_root ();
-//    bool success = (dir != NULL
-//                    && free_map_allocate (1, &inode_sector)
-//                    && inode_create (inode_sector, initial_size)
-//                    && dir_add (dir, path, inode_sector));
-//    if (!success && inode_sector != 0)
-//        free_map_release (inode_sector, 1);
-//    dir_close (dir);
-//
-//    return success;
-//}
-//
-//bool
-//filesys_create_file(const char *name, off_t initial_size){
-//    block_sector_t inode_sector = 0;
-//    struct dir *dir = dir_open_root ();
-//    bool success = (dir != NULL
-//                    && free_map_allocate (1, &inode_sector)
-//                    && inode_create (inode_sector, initial_size)
-//                    && dir_add (dir, name, inode_sector));
-//    if (!success && inode_sector != 0)
-//        free_map_release (inode_sector, 1);
-//    dir_close (dir);
-//
-//    return success;
-//}
+bool
+filesys_create_dir(const char *path, off_t initial_size){
+    block_sector_t inode_sector = 0;
+    struct dir *dir = dir_open_root ();
+    bool success = (dir != NULL
+                    && free_map_allocate (1, &inode_sector)
+                    && inode_create (inode_sector, initial_size)
+                    && dir_add (dir, path, inode_sector));
+    if (!success && inode_sector != 0)
+        free_map_release (inode_sector, 1);
+    dir_close (dir);
+
+    return success;
+}
+
+bool
+filesys_create_file(const char *name, off_t initial_size){
+    block_sector_t inode_sector = 0;
+    struct dir *dir = dir_open_root ();
+    bool success = (dir != NULL
+                    && free_map_allocate (1, &inode_sector)
+                    && inode_create (inode_sector, initial_size)
+                    && dir_add (dir, name, inode_sector));
+    if (!success && inode_sector != 0)
+        free_map_release (inode_sector, 1);
+    dir_close (dir);
+
+    return success;
+}
 
 /* Opens the file with the given NAME.
    Returns the new file if successful or a null pointer

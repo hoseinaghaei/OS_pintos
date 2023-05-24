@@ -464,7 +464,7 @@ get_inode_disk (const struct inode *inode)
 }
 
 bool
-inode_isdir (const struct inode *inode)
+is_inode_dir (const struct inode *inode)
 {
     if (inode == NULL)
         return false;
