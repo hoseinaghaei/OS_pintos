@@ -19,7 +19,7 @@ Every read or write operation to the filesystem is now tunnelled through the buf
 
 #### b. Extensible Files
 
-To support both small and large files, we implement direct, indirect, and double indirect inodes. The inode structure is extended to accommodate these changes, especially when writing files. You can explore the `inode_write_at` and `inode_close` functions in the `src/filesys/inode.c` file(https://github.com/hoseinaghaei/OS_pintos/blob/phase03/src/filesys/inode.c) for detailed implementation.
+To support both small and large files, we implement direct, indirect, and double indirect inodes. The inode structure is extended to accommodate these changes, especially when writing files. You can explore the `inode_write_at` and `inode_close` functions in the `src/filesys/inode.c` [file](https://github.com/hoseinaghaei/OS_pintos/blob/phase03/src/filesys/inode.c) for detailed implementation.
 
 #### c. Subdirectories
 
