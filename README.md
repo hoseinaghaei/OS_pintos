@@ -12,18 +12,18 @@ The core objective of Phase 3 is to extend the existing Pint-OS filesystem using
 
 #### a. Buffer Cache Implementation
 
-Every read or write operation to the filesystem is now tunnelled through the buffer cache. Two critical functions, `cache_write` and `cache_read`, can be found in the `src/filesys/cache.c` file. It's important to remember two key aspects:
+Every read or write operation to the filesystem is now tunnelled through the buffer cache. Two critical functions, `cache_write` and `cache_read`, can be found in the `src/filesys/cache.c` [file](https://github.com/hoseinaghaei/OS_pintos/blob/phase03/src/filesys/cache.c). It's important to remember two key aspects:
 
 - We use the Least Recently Used (LRU) policy for buffer replacement.
 - Handle the case of OS shutdown by ensuring that all dirty buffers are written to disk. For more information, refer to the `cache_down` function.
 
 #### b. Extensible Files
 
-To support both small and large files, we implement direct, indirect, and double indirect inodes. The inode structure is extended to accommodate these changes, especially when writing files. You can explore the `inode_write_at` and `inode_close` functions in the `src/filesys/inode.c` file for detailed implementation.
+To support both small and large files, we implement direct, indirect, and double indirect inodes. The inode structure is extended to accommodate these changes, especially when writing files. You can explore the `inode_write_at` and `inode_close` functions in the `src/filesys/inode.c` file(https://github.com/hoseinaghaei/OS_pintos/blob/phase03/src/filesys/inode.c) for detailed implementation.
 
 #### c. Subdirectories
 
-In Pint-OS, directories are treated as files, including their contents. This phase introduces the ability to create subdirectories and manage directories efficiently. Refer to the `src/filesys/directory.c` file for relevant code.
+In Pint-OS, directories are treated as files, including their contents. This phase introduces the ability to create subdirectories and manage directories efficiently. Refer to the `src/filesys/directory.c` [file](https://github.com/hoseinaghaei/OS_pintos/blob/phase03/src/filesys/directory.c) for relevant code.
 
 #### d. Synchronization Requirements
 
