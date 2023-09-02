@@ -1,10 +1,10 @@
-# PintOS Phase 3 - Filesystem Extension, Buffer Cache, and Synchronization
+# PintOS Phase 3 - Filesystem Extension, Buffer Cache
 
-This repository contains the code and documentation for Phase 3 of the PintOS project. In this final phase, we extend the Pint-OS filesystem using an inode-based filesystem, implement a buffer cache, and enhance synchronization for improved file handling.
+This repository contains the code and documentation for Phase 3 of the PintOS project. In this final phase, we extend the Pint-OS filesystem using an inode-based filesystem, implement a buffer cache, and enhance synchronization for improved file handling. see [phase01](https://github.com/hoseinaghaei/OS_pintos/tree/phase01) and [phase02](https://github.com/hoseinaghaei/OS_pintos/tree/phase02) readme.
 
 ## Overview
 
-Phase 3 represents the culmination of our Pint-OS project journey, building upon the foundations laid in Phase 1 and Phase 2. In this phase, we focus on extending the filesystem functionality and addressing synchronization challenges. Here are the key components of Phase 3:
+Phase 3 represents the culmination of our Pint-OS project journey, building upon the foundations laid in Phase 1. In this phase, we focus on extending the filesystem functionality and addressing synchronization challenges. Here are the key components of Phase 3:
 
 ### 1. Inode-based Filesystem
 
@@ -12,7 +12,7 @@ The core objective of Phase 3 is to extend the existing Pint-OS filesystem using
 
 #### a. Buffer Cache Implementation
 
-Every read or write operation to the filesystem is now tunneled through the buffer cache. Two critical functions, `cache_write` and `cache_read`, can be found in the `src/filesys/cache.c` file. It's important to remember two key aspects:
+Every read or write operation to the filesystem is now tunnelled through the buffer cache. Two critical functions, `cache_write` and `cache_read`, can be found in the `src/filesys/cache.c` file. It's important to remember two key aspects:
 
 - We use the Least Recently Used (LRU) policy for buffer replacement.
 - Handle the case of OS shutdown by ensuring that all dirty buffers are written to disk. For more information, refer to the `cache_down` function.
